@@ -82,6 +82,7 @@ bool descartes_moveit::IkFastMoveitStateAdapter::getAllIK(const Eigen::Affine3d&
   std::vector<std::vector<double>> joint_results;
   kinematics::KinematicsResult result;
   kinematics::KinematicsQueryOptions options;  // defaults are reasonable as of Indigo
+  options.discretization_method = kinematics::DiscretizationMethods::ALL_DISCRETIZED;
 
   if (!solver->getPositionIK(poses, dummy_seed, joint_results, result, options))
   {
