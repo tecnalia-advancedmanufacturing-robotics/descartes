@@ -77,20 +77,26 @@ target_link_libraries(descartes_planner
 ## Install ##
 #############
 install(
-    TARGETS ${PROJECT_NAME} 
+    TARGETS ${PROJECT_NAME}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
 install(
     DIRECTORY include/${PROJECT_NAME}/
     DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 
+install(
+  FILES
+  descartes_planner_plugins.xml
+  DESTINATION
+  ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 
 #############
 ## Testing ##
 #############
 if(CATKIN_ENABLE_TESTING)
 
-  set(UTEST_PLANNER_SRC_FILES 
+  set(UTEST_PLANNER_SRC_FILES
       test/utest.cpp
       test/dense_planner.cpp
       test/sparse_planner.cpp
