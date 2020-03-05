@@ -151,10 +151,29 @@ void descartes_moveit::IkFastMoveitStateAdapter::setState(const moveit::core::Ro
 bool descartes_moveit::IkFastMoveitStateAdapter::computeIKFastTransforms()
 {
   // look up the IKFast base and tool frame
-  ros::NodeHandle nh;
+  ros::NodeHandle nh(group_name_);
+  std::string ikfast_base_frame_param_key, ikfast_tool_frame_param_key;
   std::string ikfast_base_frame, ikfast_tool_frame;
-  nh.param<std::string>("ikfast_base_frame", ikfast_base_frame, default_base_frame);
-  nh.param<std::string>("ikfast_tool_frame", ikfast_tool_frame, default_tool_frame);
+  if (nh.searchParam("ikfast_base_frame", ikfast_base_frame_param_key))
+  {
+    nh.getParam(ikfast_base_frame_param_key, ikfast_base_frame);
+  }
+  else
+  {
+    ikfast_base_frame = default_base_frame;
+    CONSOLE_BRIDGE_logWarn("IkFastMoveitStateAdapter: IkFast base frame parameter not found. Assuming IkFast "
+                           "plugin defined for base frame: %s", ikfast_base_frame.c_str());
+  }
+  if (nh.searchParam("ikfast_tool_frame", ikfast_tool_frame_param_key))
+  {
+    nh.getParam(ikfast_tool_frame_param_key, ikfast_tool_frame);
+  }
+  else
+  {
+    ikfast_tool_frame = default_tool_frame;
+    CONSOLE_BRIDGE_logWarn("IkFastMoveitStateAdapter: IkFast tool frame parameter not found. Assuming IkFast "
+                           "plugin defined for tool frame: %s", ikfast_tool_frame.c_str());
+  }
 
   if (!robot_state_->knowsFrameTransform(ikfast_base_frame))
   {
