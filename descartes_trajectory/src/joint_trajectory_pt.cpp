@@ -50,7 +50,7 @@ using namespace descartes_core;
 namespace descartes_trajectory
 {
 JointTrajectoryPt::JointTrajectoryPt(const descartes_core::TimingConstraint &timing)
-  : descartes_core::TrajectoryPt(timing), tool_(Eigen::Affine3d::Identity()), wobj_(Eigen::Affine3d::Identity())
+  : descartes_core::TrajectoryPt(timing), tool_(Eigen::Isometry3d::Identity()), wobj_(Eigen::Isometry3d::Identity())
 {
 }
 
@@ -63,7 +63,7 @@ JointTrajectoryPt::JointTrajectoryPt(const std::vector<TolerancedJointValue> &jo
 
 JointTrajectoryPt::JointTrajectoryPt(const std::vector<TolerancedJointValue> &joints,
                                      const descartes_core::TimingConstraint &timing)
-  : descartes_core::TrajectoryPt(timing), tool_(Eigen::Affine3d::Identity()), wobj_(Eigen::Affine3d::Identity())
+  : descartes_core::TrajectoryPt(timing), tool_(Eigen::Isometry3d::Identity()), wobj_(Eigen::Isometry3d::Identity())
 {
   unpackTolerancedJoints(joints, lower_, nominal_, upper_);
 }
@@ -73,24 +73,24 @@ JointTrajectoryPt::JointTrajectoryPt(const std::vector<double> &joints, const de
   , lower_(joints)
   , upper_(joints)
   , descartes_core::TrajectoryPt(timing)
-  , tool_(Eigen::Affine3d::Identity())
-  , wobj_(Eigen::Affine3d::Identity())
+  , tool_(Eigen::Isometry3d::Identity())
+  , wobj_(Eigen::Isometry3d::Identity())
 {
 }
 
 bool JointTrajectoryPt::getClosestCartPose(const std::vector<double> &seed_state, const RobotModel &model,
-                                           Eigen::Affine3d &pose) const
+                                           Eigen::Isometry3d &pose) const
 {
   NOT_IMPLEMENTED_ERR(false)
 }
 
 bool JointTrajectoryPt::getNominalCartPose(const std::vector<double> &seed_state, const RobotModel &model,
-                                           Eigen::Affine3d &pose) const
+                                           Eigen::Isometry3d &pose) const
 {
   return model.getFK(nominal_, pose);
 }
 
-void JointTrajectoryPt::getCartesianPoses(const RobotModel &model, EigenSTL::vector_Affine3d &poses) const
+void JointTrajectoryPt::getCartesianPoses(const RobotModel &model, EigenSTL::vector_Isometry3d &poses) const
 {
   poses.clear();
 }
