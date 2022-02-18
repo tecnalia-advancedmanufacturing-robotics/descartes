@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   descartes_trajectory
   moveit_ros_planning
   pluginlib
+  eigen_conversions
 )
 
 find_package(rosconsole_bridge REQUIRED)
