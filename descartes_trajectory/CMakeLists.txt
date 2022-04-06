@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   descartes_core
   moveit_core
   roscpp
+  eigen_conversions
 )
 
 find_package(Boost REQUIRED)
@@ -64,7 +65,7 @@ target_link_libraries(descartes_trajectory
 #############
 
 install(
-    TARGETS ${PROJECT_NAME} 
+    TARGETS ${PROJECT_NAME}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
 install(

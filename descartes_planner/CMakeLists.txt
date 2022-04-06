@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   pluginlib
   cmake_modules
+  eigen_conversions
 )
 
 find_package(Boost REQUIRED)
