@@ -77,6 +77,61 @@ bool descartes_moveit::IkFastMoveitStateAdapter::initialize(planning_scene_monit
   return computeIKFastTransforms(world_frame, tcp_frame);
 }
 
+// inspired by https://stackoverflow.com/a/48271759
+// Returns all possible lists where
+// list[i] ∈ options[i] ∀i
+std::vector<std::vector<double>> combinations(const std::vector<std::vector<double>>& options)
+{
+  size_t nComb = 1;
+  size_t N = options.size();
+
+  for (const auto& v : options)
+    nComb *= v.size();
+
+  std::vector<std::vector<double>> res(nComb, std::vector<double>(N));
+
+  for (size_t i = 0; i < nComb; i++)
+  {
+    auto temp = i;
+    for (size_t j = 0; j < N; j++)
+    {
+      auto index = temp % options[j].size();
+      temp /= options[j].size();
+      res[i][j]=options[j][index];
+    };
+  }
+  return res;
+}
+
+// For a single joint, get all of its variants
+// For a joint that goes from -360 degrees to 360 degrees:
+// the variants of pose 90 are [-270, 90]
+// the variants of pose -90 are [-90, 270]
+std::vector<double> variantsOfJoint(double pose, moveit::core::VariableBounds bounds)
+{
+  std::vector<double> res{ pose };
+  for (double variant = pose - 2 * M_PI; bounds.min_position_ <= variant; variant -= 2 * M_PI)
+    res.push_back(variant);
+
+  for (double variant = pose + 2 * M_PI; variant <= bounds.max_position_; variant += 2 * M_PI)
+    res.push_back(variant);
+
+  return res;
+}
+
+// For a single ik solution, get all variants by combining the variants of all poses
+std::vector<std::vector<double>>
+descartes_moveit::IkFastMoveitStateAdapter::variantsOfIK(const std::vector<double>& joint_pose) const
+{
+  std::vector<const std::vector<moveit::core::VariableBounds>*> bounds = joint_group_->getActiveJointModelsBounds();
+
+  std::vector<std::vector<double>> jointVariants;  // jointVariants[i] is a list of all variants of joint i
+  for (uint i = 0; i < joint_pose.size(); i++)
+    jointVariants.push_back(variantsOfJoint(joint_pose[i], (*bounds[i])[0]));
+
+  return combinations(jointVariants);
+}
+
 bool descartes_moveit::IkFastMoveitStateAdapter::getAllIK(const Eigen::Isometry3d& pose,
                                                           std::vector<std::vector<double>>& joint_poses) const
 {
@@ -102,10 +157,9 @@ bool descartes_moveit::IkFastMoveitStateAdapter::getAllIK(const Eigen::Isometry3
   }
 
   for (auto& sol : joint_results)
-  {
     if (isValid(sol))
-      joint_poses.push_back(std::move(sol));
-  }
+      for (auto& variant : variantsOfIK(sol))
+        joint_poses.push_back(std::move(variant));
 
   return joint_poses.size() > 0;
 }
@@ -148,9 +202,11 @@ void descartes_moveit::IkFastMoveitStateAdapter::setState(const moveit::core::Ro
   computeIKFastTransforms();
 }
 
-bool descartes_moveit::IkFastMoveitStateAdapter::computeIKFastTransforms(){
-  computeIKFastTransforms(DEFAULT_BASE_FRAME, DEFAULT_TOOL_FRAME);
+bool descartes_moveit::IkFastMoveitStateAdapter::computeIKFastTransforms()
+{
+  return computeIKFastTransforms(DEFAULT_BASE_FRAME, DEFAULT_TOOL_FRAME);
 }
+
 bool descartes_moveit::IkFastMoveitStateAdapter::computeIKFastTransforms(std::string base_frame, std::string tool_frame)
 {
   // look up the IKFast base and tool frame

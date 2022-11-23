@@ -50,6 +50,7 @@ public:
   void setState(const moveit::core::RobotState& state);
 
 protected:
+  std::vector<std::vector<double>> variantsOfIK(const std::vector<double>& joint_pose) const;
   bool computeIKFastTransforms();
   bool computeIKFastTransforms(std::string base_frame, std::string tool_frame);
 
