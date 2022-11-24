@@ -61,7 +61,7 @@ bool descartes_moveit::IkFastMoveitStateAdapter::initialize(const std::string& r
     return false;
   }
 
-  return computeIKFastTransforms(world_frame, tcp_frame);
+  return computeIKFastTransforms();
 }
 
 bool descartes_moveit::IkFastMoveitStateAdapter::initialize(planning_scene_monitor::PlanningSceneMonitorPtr& psm,
@@ -74,7 +74,7 @@ bool descartes_moveit::IkFastMoveitStateAdapter::initialize(planning_scene_monit
     return false;
   }
 
-  return computeIKFastTransforms(world_frame, tcp_frame);
+  return computeIKFastTransforms();
 }
 
 // inspired by https://stackoverflow.com/a/48271759
@@ -204,16 +204,25 @@ void descartes_moveit::IkFastMoveitStateAdapter::setState(const moveit::core::Ro
 
 bool descartes_moveit::IkFastMoveitStateAdapter::computeIKFastTransforms()
 {
-  return computeIKFastTransforms(DEFAULT_BASE_FRAME, DEFAULT_TOOL_FRAME);
-}
-
-bool descartes_moveit::IkFastMoveitStateAdapter::computeIKFastTransforms(std::string base_frame, std::string tool_frame)
-{
-  // look up the IKFast base and tool frame
   ros::NodeHandle nh;
-  std::string ikfast_base_frame, ikfast_tool_frame;
-  nh.param<std::string>("ikfast_base_frame", ikfast_base_frame, base_frame);
-  nh.param<std::string>("ikfast_tool_frame", ikfast_tool_frame, tool_frame);
+
+  // Default frames
+  std::string ikfast_base_frame = DEFAULT_BASE_FRAME;
+  std::string ikfast_tool_frame = DEFAULT_TOOL_FRAME;
+
+  // If it is a chain, use current joint group as default
+  if (joint_group_->isChain())
+  {
+    auto joint_group_config = joint_group_->getConfig();
+    auto chain = joint_group_config.chains_[0];
+    ikfast_base_frame = chain.first;
+    ikfast_tool_frame = chain.second;
+  }
+
+  // Can also be overriden with parameters
+  nh.param<std::string>("ikfast_base_frame", ikfast_base_frame);
+  nh.param<std::string>("ikfast_tool_frame", ikfast_tool_frame);
+
 
   if (!robot_state_->knowsFrameTransform(ikfast_base_frame))
   {
