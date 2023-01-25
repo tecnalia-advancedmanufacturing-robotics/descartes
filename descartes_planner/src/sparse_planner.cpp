@@ -57,7 +57,7 @@ descartes_core::TimingConstraint cumulativeTimingBetween(
 namespace descartes_planner
 {
 const int INVALID_INDEX = -1;
-const double MAX_JOINT_CHANGE = M_PI_4;
+const double MAX_JOINT_CHANGE = 0.1f;
 const double DEFAULT_SAMPLING = 0.1f;
 const std::string SAMPLING_CONFIG = "sampling";
 
@@ -790,7 +790,7 @@ int SparsePlanner::interpolateSparseTrajectory(const SolutionArray& sparse_solut
               sparse_index = k;
               return static_cast<int>(InterpolationResult::REPLAN);
             }
-            
+
             joint_points_map_.insert(std::make_pair(cart_point->getID(), JointTrajectoryPt(aprox_interp, tm)));
           }
           else

@@ -279,7 +279,7 @@ bool CartTrajectoryPt::getClosestJointPose(const std::vector<double> &seed_state
 
   // getting pose values
   Eigen::Vector3d t = candidate_pose.translation();
-  Eigen::Vector3d rpy = candidate_pose.rotation().eulerAngles(0, 1, 2);
+  Eigen::Vector3d rpy = candidate_pose.linear().eulerAngles(0, 1, 2);
 
   std::vector<std::tuple<double, double, double> > vals = {
     std::make_tuple(t(0), wobj_pt_.position_tolerance.x_lower, wobj_pt_.position_tolerance.x_upper),
