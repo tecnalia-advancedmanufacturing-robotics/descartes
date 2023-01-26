@@ -167,7 +167,7 @@ struct TolerancedFrame : public descartes_core::Frame
   TolerancedFrame(const descartes_core::Frame &a) : descartes_core::Frame(a)
   {
     Eigen::Vector3d t = a.frame.translation();
-    Eigen::Matrix3d m = a.frame.rotation();
+    Eigen::Matrix3d m = a.frame.linear();
     Eigen::Vector3d rxyz = m.eulerAngles(0, 1, 2);
     position_tolerance = ToleranceBase::createSymmetric<PositionTolerance>(t(0), t(1), t(2), 0);
     orientation_tolerance = ToleranceBase::createSymmetric<OrientationTolerance>(rxyz(0), rxyz(1), rxyz(2), 0);
