@@ -52,13 +52,13 @@ descartes_core::TimingConstraint cumulativeTimingBetween(
   }
   return tm;
 }
-}
+}  // namespace
 
 namespace descartes_planner
 {
 const int INVALID_INDEX = -1;
-const double MAX_JOINT_CHANGE = 0.1f;
-const double DEFAULT_SAMPLING = 0.1f;
+const double MAX_JOINT_CHANGE = 0.01f;
+const double DEFAULT_SAMPLING = 0.01f;
 const std::string SAMPLING_CONFIG = "sampling";
 
 SparsePlanner::SparsePlanner(RobotModelConstPtr model, double sampling)
@@ -356,8 +356,7 @@ bool SparsePlanner::modify(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp)
 
 bool SparsePlanner::isInSparseTrajectory(const TrajectoryPt::ID& ref_id)
 {
-  auto predicate = [&ref_id](std::tuple<int, TrajectoryPtPtr, JointTrajectoryPt>& t)
-  {
+  auto predicate = [&ref_id](std::tuple<int, TrajectoryPtPtr, JointTrajectoryPt>& t) {
     return ref_id == std::get<1>(t)->getID();
   };
 
@@ -368,10 +367,7 @@ bool SparsePlanner::isInSparseTrajectory(const TrajectoryPt::ID& ref_id)
 int SparsePlanner::getDensePointIndex(const TrajectoryPt::ID& ref_id)
 {
   int index = INVALID_INDEX;
-  auto predicate = [&ref_id](TrajectoryPtPtr cp)
-  {
-    return ref_id == cp->getID();
-  };
+  auto predicate = [&ref_id](TrajectoryPtPtr cp) { return ref_id == cp->getID(); };
 
   auto pos = std::find_if(cart_points_.begin(), cart_points_.end(), predicate);
   if (pos != cart_points_.end())
@@ -385,8 +381,7 @@ int SparsePlanner::getDensePointIndex(const TrajectoryPt::ID& ref_id)
 int SparsePlanner::getSparsePointIndex(const TrajectoryPt::ID& ref_id)
 {
   int index = INVALID_INDEX;
-  auto predicate = [ref_id](std::tuple<int, TrajectoryPtPtr, JointTrajectoryPt>& t)
-  {
+  auto predicate = [ref_id](std::tuple<int, TrajectoryPtPtr, JointTrajectoryPt>& t) {
     return ref_id == std::get<1>(t)->getID();
   };
 
@@ -409,9 +404,7 @@ int SparsePlanner::findNearestSparsePointIndex(const TrajectoryPt::ID& ref_id, b
     return index;
   }
 
-  auto predicate = [&dense_index, &skip_equal](std::tuple<int, TrajectoryPtPtr, JointTrajectoryPt>& t)
-  {
-
+  auto predicate = [&dense_index, &skip_equal](std::tuple<int, TrajectoryPtPtr, JointTrajectoryPt>& t) {
     if (skip_equal)
     {
       return dense_index < std::get<0>(t);
@@ -580,8 +573,6 @@ void SparsePlanner::sampleTrajectory(double sampling, const std::vector<Trajecto
 
     ss << i << " ";
   }
-  ss << "]";
-  ROS_INFO_STREAM("Sparse Indices:\n" << ss.str());
 
   // add the last one
   if (sparse_trajectory_array.back()->getID() != dense_trajectory_array.back()->getID())
@@ -594,7 +585,10 @@ void SparsePlanner::sampleTrajectory(double sampling, const std::vector<Trajecto
     descartes_core::TrajectoryPtPtr cloned = dense_trajectory_array.back()->copyAndSetTiming(tm);
     // Write to solution
     sparse_trajectory_array.push_back(cloned);
+    ss << dense_trajectory_array.size() - 1 << " ";
   }
+  ss << "]";
+  ROS_INFO_STREAM("Sparse Indices: " << ss.str());
 }
 
 bool SparsePlanner::interpolateJointPose(const std::vector<double>& start, const std::vector<double>& end, double t,
@@ -708,24 +702,22 @@ bool SparsePlanner::plan()
   return succeeded;
 }
 
-bool SparsePlanner::checkJointChanges(const std::vector<double>& s1, const std::vector<double>& s2,
-                                      const double& max_change)
+double SparsePlanner::maxJointChange(const std::vector<double>& s1, const std::vector<double>& s2)
 {
   if (s1.size() != s2.size())
   {
     ROS_ERROR_STREAM("Joint arrays have unequal size, failed to check for large joint changes");
-    return false;
+    return 1000;
   }
 
+  double max_change = 0;
   for (int i = 0; i < s1.size(); i++)
   {
-    if (std::abs(s1[i] - s2[i]) > max_change)
-    {
-      return false;
-    }
+    int change = std::abs(s1[i] - s2[i]);
+    if (change > max_change)
+      max_change = change;
   }
-
-  return true;
+  return max_change;
 }
 
 int SparsePlanner::interpolateSparseTrajectory(const SolutionArray& sparse_solution_array, int& sparse_index,
@@ -751,13 +743,13 @@ int SparsePlanner::interpolateSparseTrajectory(const SolutionArray& sparse_solut
     joint_points_map_.insert(std::make_pair(start_tpoint->getID(), start_jpoint));
 
     // interpolating
-    int step = end_index - start_index;
-    ROS_DEBUG_STREAM("Interpolation parameters: step : " << step << ", start index " << start_index << ", end index "
-                                                         << end_index);
-    for (int j = 1; (j <= step) && ((start_index + j) < cart_points_.size()); j++)
+    ROS_DEBUG_STREAM("Interpolation parameters: start index " << start_index << ", end index " << end_index);
+
+    double max_joint_change_found = 0;
+    int max_joint_change_index = 0;
+    for (int pos = start_index + 1; (pos <= end_index) && (pos < cart_points_.size()); pos++)
     {
-      int pos = start_index + j;
-      double t = double(j) / double(step);
+      double t = double(pos - start_index) / double(end_index - start_index);
       if (!interpolateJointPose(start_jpose, end_jpose, t, rough_interp))
       {
         ROS_ERROR_STREAM("Interpolation for point at position " << pos << "failed, aborting");
@@ -765,54 +757,49 @@ int SparsePlanner::interpolateSparseTrajectory(const SolutionArray& sparse_solut
       }
 
       TrajectoryPtPtr cart_point = cart_points_[pos];
-      if (j != step)
+      if (pos != end_index)
       {
-        if(cart_point->getClosestJointPose(rough_interp,*robot_model,aprox_interp) )
+        if (cart_point->getClosestJointPose(rough_interp, *robot_model, aprox_interp))
         {
-          if(checkJointChanges(rough_interp,aprox_interp,MAX_JOINT_CHANGE))
+          double joint_change = maxJointChange(rough_interp, aprox_interp);
+          if (joint_change > max_joint_change_found)
           {
-            ROS_DEBUG_STREAM("Interpolated point at position "<<pos);
-
-            // look up previous points joint solution
-            const JointTrajectoryPt& last_joint_pt = joint_points_map_.at(cart_points_[pos-1]->getID());
-            std::vector<double> last_joint_pose;
-            last_joint_pt.getNominalJointPose(std::vector<double>(), *robot_model, last_joint_pose);
-
-            // retreiving timing constraint
-            // TODO, let's check the timing constraints
-            const descartes_core::TimingConstraint& tm = cart_points_[pos]->getTiming();
-
-            // check validity of joint motion
-            if (tm.isSpecified() && !robot_model->isValidMove(last_joint_pose, aprox_interp, tm.upper))
-            {
-              ROS_WARN_STREAM("Joint velocity checking failed for point " << pos << ". Replanning.");
-              point_pos = pos;
-              sparse_index = k;
-              return static_cast<int>(InterpolationResult::REPLAN);
-            }
-
-            joint_points_map_.insert(std::make_pair(cart_point->getID(), JointTrajectoryPt(aprox_interp, tm)));
+            max_joint_change_found = joint_change;
+            max_joint_change_index = pos;
           }
-          else
+          ROS_DEBUG_STREAM("Interpolated point at position " << pos);
+
+          // look up previous points joint solution
+          const JointTrajectoryPt& last_joint_pt = joint_points_map_.at(cart_points_[pos - 1]->getID());
+          std::vector<double> last_joint_pose;
+          last_joint_pt.getNominalJointPose(std::vector<double>(), *robot_model, last_joint_pose);
+
+          // retreiving timing constraint
+          // TODO, let's check the timing constraints
+          const descartes_core::TimingConstraint& tm = cart_points_[pos]->getTiming();
+
+          // check validity of joint motion
+          if (tm.isSpecified() && !robot_model->isValidMove(last_joint_pose, aprox_interp, tm.upper))
           {
-            ROS_WARN_STREAM("Joint changes greater that "<<MAX_JOINT_CHANGE<<" detected for point "<<pos<<
-                            ", replanning");
-            sparse_index = k;
+            ROS_WARN_STREAM("Joint velocity checking failed for point " << pos << ". Replanning.");
             point_pos = pos;
-            return (int)InterpolationResult::REPLAN;
+            sparse_index = k;
+            return static_cast<int>(InterpolationResult::REPLAN);
           }
+
+          joint_points_map_.insert(std::make_pair(cart_point->getID(), JointTrajectoryPt(aprox_interp, tm)));
         }
         else
         {
-          ROS_WARN_STREAM("Couldn't find a closest joint pose for point "<< cart_point->getID()<<", replanning");
+          ROS_WARN_STREAM("Couldn't find a closest joint pose for point " << cart_point->getID() << ", replanning");
           sparse_index = k;
           point_pos = pos;
           return (int)InterpolationResult::REPLAN;
         }
       }
-      else // j == step
+      else  // j == step
       {
-        const JointTrajectoryPt& last_joint_pt = joint_points_map_.at(cart_points_[pos-1]->getID());
+        const JointTrajectoryPt& last_joint_pt = joint_points_map_.at(cart_points_[pos - 1]->getID());
         std::vector<double> last_joint_pose;
         last_joint_pt.getNominalJointPose(std::vector<double>(), *robot_model, last_joint_pose);
         const descartes_core::TimingConstraint& tm = cart_points_[pos]->getTiming();
@@ -826,8 +813,17 @@ int SparsePlanner::interpolateSparseTrajectory(const SolutionArray& sparse_solut
         }
         joint_points_map_.insert(std::make_pair(cart_point->getID(), JointTrajectoryPt(rough_interp, tm)));
       }
-    } // end of interpolation steps between sparse points
-  } // end of sparse point loop
+    }  // end of interpolation steps between sparse points
+
+    if (max_joint_change_found > MAX_JOINT_CHANGE)
+    {
+      ROS_WARN_STREAM("Joint changes greater that " << MAX_JOINT_CHANGE << " detected for point "
+                                                    << max_joint_change_index << ", replanning");
+      sparse_index = k;
+      point_pos = max_joint_change_index;
+      return (int)InterpolationResult::REPLAN;
+    }
+  }  // end of sparse point loop
 
   return (int)InterpolationResult::SUCCESS;
 }

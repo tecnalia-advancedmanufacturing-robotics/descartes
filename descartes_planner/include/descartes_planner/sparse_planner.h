@@ -73,7 +73,7 @@ protected:
   int getSparsePointIndex(const descartes_core::TrajectoryPt::ID& ref_id);
   int findNearestSparsePointIndex(const descartes_core::TrajectoryPt::ID& ref_id, bool skip_equal = true);
   bool isInSparseTrajectory(const descartes_core::TrajectoryPt::ID& ref_id);
-  bool checkJointChanges(const std::vector<double>& s1, const std::vector<double>& s2, const double& max_change);
+  double maxJointChange(const std::vector<double>& s1, const std::vector<double>& s2);
 
   bool getOrderedSparseArray(std::vector<descartes_core::TrajectoryPtPtr>& sparse_array);
   bool getSparseSolutionArray(SolutionArray& sparse_solution_array);
