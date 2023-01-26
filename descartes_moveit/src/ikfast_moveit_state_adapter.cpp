@@ -161,6 +161,10 @@ bool descartes_moveit::IkFastMoveitStateAdapter::getAllIK(const Eigen::Isometry3
       for (auto& variant : variantsOfIK(sol))
         joint_poses.push_back(std::move(variant));
 
+  if (joint_poses.size()>50){
+    ROS_WARN_THROTTLE(1.0, "GetAllIK returning a lot of variants, possibly due to a lot of joints having more than 2*PI range, consider limiting some of the joints");
+  }
+
   return joint_poses.size() > 0;
 }
 
