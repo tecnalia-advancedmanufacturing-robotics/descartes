@@ -224,9 +224,8 @@ bool descartes_moveit::IkFastMoveitStateAdapter::computeIKFastTransforms()
   }
 
   // Can also be overriden with parameters
-  nh.param<std::string>("ikfast_base_frame", ikfast_base_frame);
-  nh.param<std::string>("ikfast_tool_frame", ikfast_tool_frame);
-
+  nh.getParam("ikfast_base_frame", ikfast_base_frame);
+  nh.getParam("ikfast_tool_frame", ikfast_tool_frame);
 
   if (!robot_state_->knowsFrameTransform(ikfast_base_frame))
   {
