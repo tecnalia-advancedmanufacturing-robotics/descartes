@@ -260,7 +260,7 @@ bool MoveitStateAdapter::isInCollision(const std::vector<double>& joint_pose) co
     robot_state_copy.setJointGroupPositions(group_name_, joint_pose);
 
     // If the state is colliding return false
-    in_collision = (*ls)->isStateColliding(robot_state_copy);
+    in_collision = (*ls)->isStateColliding(robot_state_copy, group_name_, false);
   }
 
   return in_collision;
