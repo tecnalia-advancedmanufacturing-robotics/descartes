@@ -217,10 +217,9 @@ bool descartes_moveit::IkFastMoveitStateAdapter::computeIKFastTransforms()
   // If it is a chain, use current joint group as default
   if (joint_group_->isChain())
   {
-    auto joint_group_config = joint_group_->getConfig();
-    auto chain = joint_group_config.chains_[0];
-    ikfast_base_frame = chain.first;
-    ikfast_tool_frame = chain.second;
+    const auto& solver = joint_group_->getSolverInstance();
+    ikfast_base_frame = solver->getBaseFrame();
+    ikfast_tool_frame = solver->getTipFrame();
   }
 
   // Can also be overriden with parameters
