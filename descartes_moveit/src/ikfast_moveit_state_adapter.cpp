@@ -139,7 +139,11 @@ bool descartes_moveit::IkFastMoveitStateAdapter::getAllIK(const Eigen::Isometry3
   const auto& solver = joint_group_->getSolverInstance();
 
   // Transform input pose
-  Eigen::Isometry3d tool_pose = world_to_base_.frame_inv * pose * tool0_to_tip_.frame;
+  // ROS_WARN_STREAM("pose " << pose.translation());
+  Eigen::Isometry3d base_pose = world_to_base_.frame_inv * pose;
+  // ROS_WARN_STREAM("base_pose " << base_pose.translation());
+  Eigen::Isometry3d tool_pose = base_pose * tool0_to_tip_.frame;
+  // ROS_WARN_STREAM("tool_pose " << tool_pose.translation());
 
   // convert to geometry_msgs ...
   geometry_msgs::Pose geometry_pose;
@@ -161,6 +165,10 @@ bool descartes_moveit::IkFastMoveitStateAdapter::getAllIK(const Eigen::Isometry3
       for (auto& variant : variantsOfIK(sol))
         joint_poses.push_back(variant);
 
+
+  ROS_INFO_STREAM_THROTTLE(1.0, "GetAllIk got " << joint_results.size()
+                                                << " valid joint results from solver, computed " << joint_poses.size()
+                                                << " variants");
   if (joint_poses.size()>50){
     ROS_WARN_THROTTLE(1.0, "GetAllIK returning a lot of variants, possibly due to a lot of joints having more than 2*PI range, consider limiting some of the joints");
   }
@@ -246,7 +254,10 @@ bool descartes_moveit::IkFastMoveitStateAdapter::computeIKFastTransforms()
 
   world_to_base_ = descartes_core::Frame(world_to_root_.frame * robot_state_->getFrameTransform(ikfast_base_frame));
 
-  CONSOLE_BRIDGE_logInform("IkFastMoveitStateAdapter: initialized with IKFast tool frame '%s' and base frame '%s'.",
-                           ikfast_tool_frame.c_str(), ikfast_base_frame.c_str());
+  ROS_WARN_STREAM("world_to_base_ " << world_to_base_.frame.translation());
+
+  CONSOLE_BRIDGE_logInform("IkFastMoveitStateAdapter: initialized with IKFast tool frame '%s' and IKFast base frame "
+                           "'%s'. The tool frame is %s.",
+                           ikfast_tool_frame.c_str(), ikfast_base_frame.c_str(), tool_frame_.c_str());
   return true;
 }

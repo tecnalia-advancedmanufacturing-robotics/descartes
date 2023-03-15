@@ -133,6 +133,11 @@ bool MoveitStateAdapter::initialize(planning_scene_monitor::PlanningSceneMonitor
     Eigen::Isometry3d root_to_world = Eigen::Isometry3d(robot_state_->getFrameTransform(world_frame_));
     world_to_root_ = descartes_core::Frame(root_to_world.inverse());
   }
+  else
+  {
+    CONSOLE_BRIDGE_logInform("%s: World frame '%s' matches model root frame '%s'",
+                             __FUNCTION__, world_frame_.c_str(), model_frame.c_str());
+  }
 
   // Start the psm
   return true;
@@ -260,7 +265,7 @@ bool MoveitStateAdapter::isInCollision(const std::vector<double>& joint_pose) co
     robot_state_copy.setJointGroupPositions(group_name_, joint_pose);
 
     // If the state is colliding return false
-    in_collision = (*ls)->isStateColliding(robot_state_copy);
+    in_collision = (*ls)->isStateColliding(robot_state_copy, group_name_, true);
   }
 
   return in_collision;
@@ -313,14 +318,14 @@ bool MoveitStateAdapter::isValid(const std::vector<double>& joint_pose) const
   // Satisfies joint positional bounds?
   if (!isInLimits(joint_pose))
   {
-    CONSOLE_BRIDGE_logDebug("MoveitStateAdapter.isValid: Joint pose does not satisfy positional bounds");
+    ROS_WARN_THROTTLE(1.0, "MoveitStateAdapter.isValid: Joint pose does not satisfy positional bounds");
     return false;
   }
 
   // Is in collision (if collision is active)
   if (isInCollision(joint_pose))
   {
-    CONSOLE_BRIDGE_logDebug("MoveitStateAdapter.isValid: Joint pose is in collision");
+    ROS_WARN_THROTTLE(1.0, "MoveitStateAdapter.isValid: Joint pose is in collision");
     return false;
   }
 
