@@ -157,6 +157,7 @@ bool descartes_moveit::IkFastMoveitStateAdapter::getAllIK(const Eigen::Isometry3
 
   if (!solver->getPositionIK(poses, dummy_seed, joint_results, result, options))
   {
+    ROS_WARN_THROTTLE(1.0,"getPositionIK returned false!");
     return false;
   }
 
