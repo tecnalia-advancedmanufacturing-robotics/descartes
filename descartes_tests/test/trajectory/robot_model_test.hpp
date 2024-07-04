@@ -21,7 +21,7 @@
 
 #include "descartes_core/pretty_print.hpp"
 #include "descartes_core/robot_model.h"
-#include "ros/console.h"
+#include "rclcpp/logging.hpp"
 #include <gtest/gtest.h>
 
 /**
@@ -44,23 +44,23 @@ class RobotModelTest : public ::testing::Test
 public:
   RobotModelTest() : model_(CreateRobotModel<T>())
   {
-    ROS_INFO("Instantiated RobotModelTest fixture(base) (parameterized)");
+    RCLCPP_INFO(rclcpp::get_logger("descartes_tests"),"Instantiated RobotModelTest fixture(base) (parameterized)");
   }
 
   virtual void SetUp()
   {
-    ROS_INFO("Setting up RobotModelTest fixture(base) (parameterized)");
+    RCLCPP_INFO(rclcpp::get_logger("descartes_tests"),"Setting up RobotModelTest fixture(base) (parameterized)");
     ASSERT_TRUE(static_cast<bool>(this->model_));
   }
 
   virtual void TearDown()
   {
-    ROS_INFO("Tearing down RobotModelTest fixture(base) (parameterized)");
+    RCLCPP_INFO(rclcpp::get_logger("descartes_tests"),"Tearing down RobotModelTest fixture(base) (parameterized)");
   }
 
   virtual ~RobotModelTest()
   {
-    ROS_INFO("Desctructing RobotModelTest fixture(base) (parameterized)");
+    RCLCPP_INFO(rclcpp::get_logger("descartes_tests"),"Desctructing RobotModelTest fixture(base) (parameterized)");
   }
 
   descartes_core::RobotModelPtr model_;
@@ -75,12 +75,12 @@ const double JOINT_EQ_TOL = 0.001;
 
 TYPED_TEST_P(RobotModelTest, construction)
 {
-  ROS_INFO_STREAM("Robot model test construction");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Robot model test construction");
 }
 
 TYPED_TEST_P(RobotModelTest, getIK)
 {
-  ROS_INFO_STREAM("Testing getIK");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Testing getIK");
   std::vector<double> fk_joint(6, 0.0);
   std::vector<double> ik_joint;
   Eigen::Isometry3d ik_pose, fk_pose;
@@ -90,23 +90,23 @@ TYPED_TEST_P(RobotModelTest, getIK)
   // return the "closets" solution.  Numeric IK does appear to do this.
   EXPECT_TRUE(this->model_->getFK(ik_joint, fk_pose));
   EXPECT_TRUE(ik_pose.matrix().isApprox(fk_pose.matrix(), TF_EQ_TOL));
-  ROS_INFO_STREAM("getIK Test completed");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"getIK Test completed");
 }
 
 TYPED_TEST_P(RobotModelTest, getAllIK)
 {
-  ROS_INFO_STREAM("Testing getAllIK");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Testing getAllIK");
   std::vector<double> fk_joint(6, 0.5);
   std::vector<std::vector<double> > joint_poses;
   Eigen::Isometry3d ik_pose, fk_pose;
 
   EXPECT_TRUE(this->model_->getFK(fk_joint, ik_pose));
   EXPECT_TRUE(this->model_->getAllIK(ik_pose, joint_poses));
-  ROS_INFO_STREAM("Get all IK returned " << joint_poses.size() << " solutions");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Get all IK returned " << joint_poses.size() << " solutions");
   std::vector<std::vector<double> >::iterator it;
   for (it = joint_poses.begin(); it != joint_poses.end(); ++it)
   {
-    ROS_INFO_STREAM("GetIK joint solution: " << *it);
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"GetIK joint solution: " << *it);
     EXPECT_TRUE(this->model_->getFK(*it, fk_pose));
     EXPECT_TRUE(ik_pose.matrix().isApprox(fk_pose.matrix(), TF_EQ_TOL));
   }

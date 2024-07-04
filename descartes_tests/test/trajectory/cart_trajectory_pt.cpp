@@ -32,7 +32,7 @@ TEST(CartTrajPt, construction)
 
 TEST(CartTrajPt, zeroTolerance)
 {
-  ROS_INFO_STREAM("Initializing zero tolerance cartesian point");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Initializing zero tolerance cartesian point");
   CartTrajectoryPt zero_tol_pos(TolerancedFrame(utils::toFrame(0, 0, 0, 0, 0, 0),
                                                 ToleranceBase::zeroTolerance<PositionTolerance>(0.0, 0.0, 0.0),
                                                 ToleranceBase::zeroTolerance<OrientationTolerance>(0.0, 0.0, 0.0)),
@@ -66,18 +66,18 @@ TEST(CartTrajPt, closestJointPose)
   std::vector<double> joint_pose = { x, y, z, rx, ry, rz };
   Eigen::Isometry3d frame_pose = descartes_core::utils::toFrame(x, y, z, rx, ry, rz);
 
-  ROS_INFO_STREAM("Initializing tolerance cartesian point");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Initializing tolerance cartesian point");
   CartTrajectoryPt cart_point(
       TolerancedFrame(utils::toFrame(x, y, z, rx, ry, rz),
                       ToleranceBase::createSymmetric<PositionTolerance>(x, y, z, POS_TOL),
                       ToleranceBase::createSymmetric<OrientationTolerance>(rx, ry, rz, ORIENT_TOL)),
       POS_INC, ORIENT_INC);
 
-  ROS_INFO_STREAM("Testing getClosestJointPose(...)");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Testing getClosestJointPose(...)");
   std::vector<double> closest_joint_pose;
   EXPECT_TRUE(cart_point.getClosestJointPose(joint_pose, robot, closest_joint_pose));
 
-  ROS_INFO_STREAM("Testing equality between seed joint pose and closest joint pose");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Testing equality between seed joint pose and closest joint pose");
   EXPECT_EQ(joint_pose, closest_joint_pose);
 }
 
@@ -95,24 +95,24 @@ TEST(CartTrajPt, getPoses)
   const int NUM_SAMPLED_ORIENT = pow((ORIENT_TOL / ORIENT_INC) + 1, 3.0);
   const int NUM_SAMPLED_BOTH = NUM_SAMPLED_POS * NUM_SAMPLED_ORIENT;
 
-  ROS_INFO_STREAM("Expected samples, position: " << NUM_SAMPLED_POS << ", orientation: " << NUM_SAMPLED_ORIENT
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Expected samples, position: " << NUM_SAMPLED_POS << ", orientation: " << NUM_SAMPLED_ORIENT
                                                  << ", both: " << NUM_SAMPLED_BOTH);
 
-  ROS_INFO_STREAM("Initializing fuzzy position point");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Initializing fuzzy position point");
   CartTrajectoryPt fuzzy_pos(
       TolerancedFrame(utils::toFrame(0, 0, 0, 0, 0, 0),
                       ToleranceBase::createSymmetric<PositionTolerance>(0.0, 0.0, 0.0, POS_TOL + EPSILON),
                       ToleranceBase::createSymmetric<OrientationTolerance>(0.0, 0.0, 0.0, 0.0)),
       POS_INC, ORIENT_INC);
 
-  ROS_INFO_STREAM("Initializing fuzzy orientation point");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Initializing fuzzy orientation point");
   CartTrajectoryPt fuzzy_orient(
       TolerancedFrame(utils::toFrame(0, 0, 0, 0, 0, 0),
                       ToleranceBase::createSymmetric<PositionTolerance>(0.0, 0.0, 0.0, 0.0),
                       ToleranceBase::createSymmetric<OrientationTolerance>(0.0, 0.0, 0.0, ORIENT_TOL + EPSILON)),
       POS_INC, ORIENT_INC);
 
-  ROS_INFO_STREAM("Initializing fuzzy position/orientation point");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Initializing fuzzy position/orientation point");
   CartTrajectoryPt fuzzy_both(
       TolerancedFrame(utils::toFrame(0, 0, 0, 0, 0, 0),
                       ToleranceBase::createSymmetric<PositionTolerance>(0.0, 0.0, 0.0, POS_TOL + EPSILON),
@@ -122,20 +122,20 @@ TEST(CartTrajPt, getPoses)
   EigenSTL::vector_Isometry3d solutions;
   std::vector<std::vector<double> > joint_solutions;
 
-  ROS_INFO_STREAM("Testing fuzzy pos point");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Testing fuzzy pos point");
   CartesianRobot robot(POS_TOL + 2 * EPSILON, ORIENT_TOL + 2 * EPSILON);
   fuzzy_pos.getCartesianPoses(robot, solutions);
   EXPECT_EQ(solutions.size(), NUM_SAMPLED_POS);
   fuzzy_pos.getJointPoses(robot, joint_solutions);
   EXPECT_EQ(joint_solutions.size(), NUM_SAMPLED_POS);
 
-  ROS_INFO_STREAM("Testing fuzzy orient point");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Testing fuzzy orient point");
   fuzzy_orient.getCartesianPoses(robot, solutions);
   EXPECT_EQ(solutions.size(), NUM_SAMPLED_ORIENT);
   fuzzy_orient.getJointPoses(robot, joint_solutions);
   EXPECT_EQ(joint_solutions.size(), NUM_SAMPLED_ORIENT);
 
-  ROS_INFO_STREAM("Testing fuzzy both point");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Testing fuzzy both point");
   fuzzy_both.getCartesianPoses(robot, solutions);
   EXPECT_EQ(solutions.size(), NUM_SAMPLED_BOTH);
   fuzzy_both.getJointPoses(robot, joint_solutions);

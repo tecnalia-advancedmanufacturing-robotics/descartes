@@ -10,13 +10,13 @@
   <url type="website">http://wiki.ros.org/descartes_moveit</url>
   <author email="ratneshmadaan@gmail.com">Ratnesh Madaan</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
   <run_depend>descartes_core</run_depend>
   <run_depend>descartes_moveit</run_depend>
   <run_depend>descartes_planner</run_depend>
   <run_depend>descartes_trajectory</run_depend>
   <run_depend>descartes_utilities</run_depend>
   <export>
-    <metapackage/>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

@@ -25,7 +25,7 @@
 #ifndef DESCARTES_ROS_CONVERSIONS_H
 #define DESCARTES_ROS_CONVERSIONS_H
 
-#include <trajectory_msgs/JointTrajectory.h>
+#include "trajectory_msgs/msg/joint_trajectory.hpp"
 #include <descartes_core/trajectory_pt.h>
 
 namespace descartes_utilities
@@ -42,7 +42,7 @@ namespace descartes_utilities
  */
 bool toRosJointPoints(const descartes_core::RobotModel& model,
                       const std::vector<descartes_core::TrajectoryPtPtr>& joint_traj, double default_joint_vel,
-                      std::vector<trajectory_msgs::JointTrajectoryPoint>& out);
+                      std::vector<trajectory_msgs::msg::JointTrajectoryPoint>& out);
 }
 
 #endif

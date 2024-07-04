@@ -141,7 +141,7 @@ bool DensePlanner::planPath(const std::vector<descartes_core::TrajectoryPtPtr>& 
 {
   if (error_code_ == descartes_core::PlannerError::UNINITIALIZED)
   {
-    ROS_ERROR_STREAM("Planner has not been initialized");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Planner has not been initialized");
     return false;
   }
 

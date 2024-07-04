@@ -20,7 +20,7 @@
 #include "descartes_trajectory/cart_trajectory_pt.h"
 #include "descartes_trajectory/joint_trajectory_pt.h"
 #include "descartes_trajectory/axial_symmetric_pt.h"
-#include "ros/console.h"
+#include "rclcpp/logging.hpp"
 #include <gtest/gtest.h>
 
 using namespace descartes_core;

@@ -42,15 +42,15 @@ robot_model_loader::RobotModelLoaderPtr robot_;
 template <>
 RobotModelPtr CreateRobotModel<descartes_moveit::MoveitStateAdapter>()
 {
-  ROS_INFO_STREAM("Construction descartes robot model");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Construction descartes robot model");
   descartes_core::RobotModelPtr descartes_model_;
   descartes_model_ = descartes_core::RobotModelPtr(new descartes_moveit::MoveitStateAdapter());
   EXPECT_TRUE(descartes_model_->initialize("robot_description", "manipulator", "base_link", "tool0"));
-  ROS_INFO_STREAM("Descartes robot model constructed");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Descartes robot model constructed");
 
   descartes_model_->setCheckCollisions(true);
   EXPECT_TRUE(descartes_model_->getCheckCollisions());
-  ROS_INFO_STREAM("Descartes robot enabled collision checks");
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Descartes robot enabled collision checks");
 
   return descartes_model_;
 }

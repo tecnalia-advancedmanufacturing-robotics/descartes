@@ -1,7 +1,7 @@
 #include "descartes_moveit/utils.h"
 #include <descartes_moveit/seed_search.h>
 
-#include <ros/ros.h>
+#include <rclcpp/logging.hpp>
 
 using namespace descartes_moveit;
 
@@ -20,13 +20,13 @@ bool doFK(moveit::core::RobotState& state, const moveit::core::JointModelGroup* 
   state.setJointGroupPositions(group, joint_pose);
   if (!state.knowsFrameTransform(tool))
   {
-    ROS_WARN("No transform to this tool frame");
+    RCLCPP_WARN(rclcpp::get_logger("descartes_moveit"),"No transform to this tool frame");
     return false;
   }
 
   if (!state.satisfiesBounds())
   {
-    ROS_WARN("Joint angles do not satisfy robot bounds");
+    RCLCPP_WARN(rclcpp::get_logger("descartes_moveit"),"Joint angles do not satisfy robot bounds");
     return false;
   }
 
@@ -126,7 +126,7 @@ JointConfigVec findSeedStatesForPair(moveit::core::RobotState& state, const std:
   for (const JointModel* model : active_joints)
   {
     if (model->getType() != JointModel::REVOLUTE)
-      ROS_WARN_STREAM("Joint '" << model->getName() << "' does not appear to be revolute");
+      RCLCPP_WARN_STREAM(rclcpp::get_logger("descartes_moveit"),"Joint '" << model->getName() << "' does not appear to be revolute");
   }
 
   // compute random starting values for all joints
@@ -154,14 +154,14 @@ JointConfigVec findSeedStatesForPair(moveit::core::RobotState& state, const std:
     Eigen::Isometry3d target_pose;
     if (!doFK(state, group, tool_frame, round_ik, target_pose))
     {
-      ROS_DEBUG_STREAM("No FK for pose " << i);
+      RCLCPP_DEBUG_STREAM(rclcpp::get_logger("descartes_moveit"),"No FK for pose " << i);
       continue;
     }
 
     // Check to make sure we're not in a singularity
     if (isSingularity(state, group))
     {
-      ROS_DEBUG_STREAM("Pose " << i << " at singularity.");
+      RCLCPP_DEBUG_STREAM(rclcpp::get_logger("descartes_moveit"),"Pose " << i << " at singularity.");
       continue;
     }
 
@@ -217,7 +217,7 @@ JointConfigVec findSeedStatesForPair(moveit::core::RobotState& state, const std:
       }
     }
 
-    ROS_DEBUG_STREAM("Calculated " << this_round_iks.size() << " unique IK states this round");
+    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("descartes_moveit"),"Calculated " << this_round_iks.size() << " unique IK states this round");
   }  // outer loop end
 
   // Consolidate set into vector for the result

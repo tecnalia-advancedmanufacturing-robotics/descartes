@@ -126,7 +126,7 @@ bool SparsePlanner::setConfig(const descartes_core::PlannerConfig& config)
   }
   catch (std::invalid_argument& exp)
   {
-    ROS_ERROR_STREAM("Unable to parse configuration value(s)");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Unable to parse configuration value(s)");
     error_code_ = descartes_core::PlannerError::INVALID_CONFIGURATION_PARAMETER;
     return false;
   }
@@ -152,24 +152,25 @@ bool SparsePlanner::planPath(const std::vector<TrajectoryPtPtr>& traj)
 {
   if (error_code_ == descartes_core::PlannerError::UNINITIALIZED)
   {
-    ROS_ERROR_STREAM("Planner has not been initialized");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Planner has not been initialized");
     return false;
   }
 
-  ros::Time start_time = ros::Time::now();
+  rclcpp::Clock clock = rclcpp::Clock{};
+  rclcpp::Time start_time =  clock.now();
 
   cart_points_.assign(traj.begin(), traj.end());
   std::vector<TrajectoryPtPtr> sparse_trajectory_array;
   sampleTrajectory(sampling_, cart_points_, sparse_trajectory_array);
-  ROS_INFO_STREAM("Sampled trajectory contains " << sparse_trajectory_array.size() << " points from "
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_planner"),"Sampled trajectory contains " << sparse_trajectory_array.size() << " points from "
                                                  << cart_points_.size() << " points in the dense trajectory");
 
   if (planning_graph_->insertGraph(sparse_trajectory_array) && plan())
   {
     int planned_count = sparse_solution_array_.size();
     int interp_count = cart_points_.size() - sparse_solution_array_.size();
-    ROS_INFO("Sparse planner succeeded with %i planned point and %i interpolated points in %f seconds", planned_count,
-             interp_count, (ros::Time::now() - start_time).toSec());
+    RCLCPP_INFO(rclcpp::get_logger("descartes_planner"),"Sparse planner succeeded with %i planned point and %i interpolated points in %f seconds", planned_count,
+             interp_count, (clock.now() - start_time).seconds());
     error_code_ = descartes_core::PlannerError::OK;
   }
   else
@@ -183,7 +184,8 @@ bool SparsePlanner::planPath(const std::vector<TrajectoryPtPtr>& traj)
 
 bool SparsePlanner::addAfter(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp)
 {
-  ros::Time start_time = ros::Time::now();
+  rclcpp::Clock clock = rclcpp::Clock{};
+  rclcpp::Time start_time = clock.now();
   int sparse_index;
   int index;
   TrajectoryPt::ID prev_id, next_id;
@@ -191,7 +193,7 @@ bool SparsePlanner::addAfter(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp)
   sparse_index = findNearestSparsePointIndex(ref_id);
   if (sparse_index == INVALID_INDEX)
   {
-    ROS_ERROR_STREAM("A point in sparse array near point " << ref_id << " could not be found, aborting");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"A point in sparse array near point " << ref_id << " could not be found, aborting");
     return false;
   }
 
@@ -203,7 +205,7 @@ bool SparsePlanner::addAfter(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp)
   index = getDensePointIndex(ref_id);
   if (index == INVALID_INDEX)
   {
-    ROS_ERROR_STREAM("Point  " << ref_id << " could not be found in dense array, aborting");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Point  " << ref_id << " could not be found in dense array, aborting");
     return false;
   }
   auto pos = cart_points_.begin();
@@ -215,8 +217,8 @@ bool SparsePlanner::addAfter(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp)
   {
     int planned_count = sparse_solution_array_.size();
     int interp_count = cart_points_.size() - sparse_solution_array_.size();
-    ROS_INFO("Sparse planner add operation succeeded, %i planned point and %i interpolated points in %f seconds",
-             planned_count, interp_count, (ros::Time::now() - start_time).toSec());
+    RCLCPP_INFO(rclcpp::get_logger("descartes_planner"),"Sparse planner add operation succeeded, %i planned point and %i interpolated points in %f seconds",
+             planned_count, interp_count, (clock.now() - start_time).seconds());
   }
   else
   {
@@ -228,7 +230,8 @@ bool SparsePlanner::addAfter(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp)
 
 bool SparsePlanner::addBefore(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp)
 {
-  ros::Time start_time = ros::Time::now();
+  rclcpp::Clock clock = rclcpp::Clock{};
+  rclcpp::Time start_time = clock.now();
   int sparse_index;
   int index;
   TrajectoryPt::ID prev_id, next_id;
@@ -236,7 +239,7 @@ bool SparsePlanner::addBefore(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp
   sparse_index = findNearestSparsePointIndex(ref_id, false);
   if (sparse_index == INVALID_INDEX)
   {
-    ROS_ERROR_STREAM("A point in sparse array near point " << ref_id << " could not be found, aborting");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"A point in sparse array near point " << ref_id << " could not be found, aborting");
     return false;
   }
 
@@ -248,7 +251,7 @@ bool SparsePlanner::addBefore(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp
   index = getDensePointIndex(ref_id);
   if (index == INVALID_INDEX)
   {
-    ROS_ERROR_STREAM("Point  " << ref_id << " could not be found in dense array, aborting");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Point  " << ref_id << " could not be found in dense array, aborting");
     return false;
   }
   auto pos = cart_points_.begin();
@@ -259,8 +262,8 @@ bool SparsePlanner::addBefore(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp
   {
     int planned_count = sparse_solution_array_.size();
     int interp_count = cart_points_.size() - sparse_solution_array_.size();
-    ROS_INFO("Sparse planner add operation succeeded, %i planned point and %i interpolated points in %f seconds",
-             planned_count, interp_count, (ros::Time::now() - start_time).toSec());
+    RCLCPP_INFO(rclcpp::get_logger("descartes_planner"),"Sparse planner add operation succeeded, %i planned point and %i interpolated points in %f seconds",
+             planned_count, interp_count, (clock.now() - start_time).seconds());
   }
   else
   {
@@ -272,11 +275,12 @@ bool SparsePlanner::addBefore(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp
 
 bool SparsePlanner::remove(const TrajectoryPt::ID& ref_id)
 {
-  ros::Time start_time = ros::Time::now();
+  rclcpp::Clock clock = rclcpp::Clock{};
+  rclcpp::Time start_time = clock.now();
   int index = getDensePointIndex(ref_id);
   if (index == INVALID_INDEX)
   {
-    ROS_ERROR_STREAM("Point  " << ref_id << " could not be found in dense array, aborting");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Point  " << ref_id << " could not be found in dense array, aborting");
     return false;
   }
 
@@ -284,7 +288,7 @@ bool SparsePlanner::remove(const TrajectoryPt::ID& ref_id)
   {
     if (!planning_graph_->removeTrajectory(cart_points_[index]->getID()))
     {
-      ROS_ERROR_STREAM("Failed to removed point " << ref_id << " from sparse trajectory, aborting");
+      RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Failed to removed point " << ref_id << " from sparse trajectory, aborting");
       return false;
     }
   }
@@ -298,8 +302,8 @@ bool SparsePlanner::remove(const TrajectoryPt::ID& ref_id)
   {
     int planned_count = sparse_solution_array_.size();
     int interp_count = cart_points_.size() - sparse_solution_array_.size();
-    ROS_INFO("Sparse planner remove operation succeeded, %i planned point and %i interpolated points in %f seconds",
-             planned_count, interp_count, (ros::Time::now() - start_time).toSec());
+    RCLCPP_INFO(rclcpp::get_logger("descartes_planner"),"Sparse planner remove operation succeeded, %i planned point and %i interpolated points in %f seconds",
+             planned_count, interp_count, (clock.now() - start_time).seconds());
   }
   else
   {
@@ -311,7 +315,8 @@ bool SparsePlanner::remove(const TrajectoryPt::ID& ref_id)
 
 bool SparsePlanner::modify(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp)
 {
-  ros::Time start_time = ros::Time::now();
+  rclcpp::Clock clock = rclcpp::Clock{};
+  rclcpp::Time start_time = clock.now();
   int sparse_index;
   TrajectoryPt::ID prev_id, next_id;
 
@@ -324,7 +329,7 @@ bool SparsePlanner::modify(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp)
     next_id = std::get<1>(sparse_solution_array_[sparse_index])->getID();
     if (!planning_graph_->addTrajectory(cp, prev_id, next_id))
     {
-      ROS_ERROR_STREAM("Failed to add point to sparse trajectory, aborting");
+      RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Failed to add point to sparse trajectory, aborting");
       return false;
     }
   }
@@ -332,7 +337,7 @@ bool SparsePlanner::modify(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp)
   {
     if (!planning_graph_->modifyTrajectory(cp))
     {
-      ROS_ERROR_STREAM("Failed to modify point in sparse trajectory, aborting");
+      RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Failed to modify point in sparse trajectory, aborting");
       return false;
     }
   }
@@ -343,8 +348,8 @@ bool SparsePlanner::modify(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp)
   {
     int planned_count = sparse_solution_array_.size();
     int interp_count = cart_points_.size() - sparse_solution_array_.size();
-    ROS_INFO("Sparse planner modify operation succeeded, %i planned point and %i interpolated points in %f seconds",
-             planned_count, interp_count, (ros::Time::now() - start_time).toSec());
+    RCLCPP_INFO(rclcpp::get_logger("descartes_planner"),"Sparse planner modify operation succeeded, %i planned point and %i interpolated points in %f seconds",
+             planned_count, interp_count, (clock.now() - start_time).seconds());
   }
   else
   {
@@ -433,22 +438,23 @@ bool SparsePlanner::getSparseSolutionArray(SolutionArray& sparse_solution_array)
   std::list<JointTrajectoryPt> sparse_joint_points;
   std::vector<TrajectoryPtPtr> sparse_cart_points;
   double cost;
-  ros::Time start_time = ros::Time::now();
+  rclcpp::Clock clock = rclcpp::Clock{};
+  rclcpp::Time start_time = clock.now();
   if (planning_graph_->getShortestPath(cost, sparse_joint_points))
   {
-    ROS_INFO_STREAM("Sparse solution was found in " << (ros::Time::now() - start_time).toSec() << " seconds");
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_planner"),"Sparse solution was found in " << (clock.now() - start_time).seconds() << " seconds");
     bool success =
         getOrderedSparseArray(sparse_cart_points) && (sparse_joint_points.size() == sparse_cart_points.size());
     if (!success)
     {
-      ROS_ERROR_STREAM("Failed to retrieve sparse solution due to unequal array sizes, cartetian pts: "
+      RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Failed to retrieve sparse solution due to unequal array sizes, cartetian pts: "
                        << sparse_cart_points.size() << ", joints pts: " << sparse_joint_points.size());
       return false;
     }
   }
   else
   {
-    ROS_ERROR_STREAM("Failed to find sparse joint solution");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Failed to find sparse joint solution");
     return false;
   }
 
@@ -464,12 +470,12 @@ bool SparsePlanner::getSparseSolutionArray(SolutionArray& sparse_solution_array)
 
     if (index == INVALID_INDEX)
     {
-      ROS_ERROR_STREAM("Cartesian point " << cp->getID() << " not found");
+      RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Cartesian point " << cp->getID() << " not found");
       return false;
     }
     else
     {
-      ROS_DEBUG_STREAM("Point with dense index " << index << " and id " << cp->getID() << " added to sparse");
+      RCLCPP_DEBUG_STREAM(rclcpp::get_logger("descartes_planner"),"Point with dense index " << index << " and id " << cp->getID() << " added to sparse");
     }
 
     sparse_solution_array.push_back(std::make_tuple(index, cp, jp));
@@ -499,7 +505,7 @@ bool SparsePlanner::getSolutionJointPoint(const CartTrajectoryPt::ID& cart_id, J
   }
   else
   {
-    ROS_ERROR_STREAM("Solution for point " << cart_id << " was not found");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Solution for point " << cart_id << " was not found");
     return false;
   }
 
@@ -550,7 +556,7 @@ void SparsePlanner::sampleTrajectory(double sampling, const std::vector<Trajecto
 {
   std::stringstream ss;
   int skip = std::ceil(double(1.0f) / sampling);
-  ROS_INFO_STREAM("Sampling skip val: " << skip << " from sampling val: " << sampling);
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_planner"),"Sampling skip val: " << skip << " from sampling val: " << sampling);
   ss << "[";
 
   if (dense_trajectory_array.empty())
@@ -588,7 +594,7 @@ void SparsePlanner::sampleTrajectory(double sampling, const std::vector<Trajecto
     ss << dense_trajectory_array.size() - 1 << " ";
   }
   ss << "]";
-  ROS_INFO_STREAM("Sparse Indices: " << ss.str());
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_planner"),"Sparse Indices: " << ss.str());
 }
 
 bool SparsePlanner::interpolateJointPose(const std::vector<double>& start, const std::vector<double>& end, double t,
@@ -596,7 +602,7 @@ bool SparsePlanner::interpolateJointPose(const std::vector<double>& start, const
 {
   if (start.size() != end.size())
   {
-    ROS_ERROR_STREAM("Joint arrays have unequal size, interpolation failed");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Joint arrays have unequal size, interpolation failed");
     return false;
   }
 
@@ -666,7 +672,7 @@ bool SparsePlanner::plan()
           {
             // Theoretically, this should never occur as we are merely modifying an existing point in the sparse
             // graph.
-            ROS_ERROR_STREAM("Could not modify trajectory point with id: " << copy_pt->getID());
+            RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Could not modify trajectory point with id: " << copy_pt->getID());
             replan = false;
             succeeded = false;
             break;
@@ -676,12 +682,12 @@ bool SparsePlanner::plan()
           if (planning_graph_->addTrajectory(cart_point, prev_id, next_id))
           {
             sparse_solution_array_.clear();
-            ROS_INFO_STREAM("Added new point to sparse trajectory from dense trajectory at position "
+            RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_planner"),"Added new point to sparse trajectory from dense trajectory at position "
                             << point_pos << ", re-planning entire trajectory");
           }
           else
           {
-            ROS_ERROR_STREAM("Adding point " << point_pos << "to sparse trajectory failed, aborting");
+            RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Adding point " << point_pos << "to sparse trajectory failed, aborting");
             replan = false;
             succeeded = false;
           }
@@ -706,7 +712,7 @@ double SparsePlanner::maxJointChange(const std::vector<double>& s1, const std::v
 {
   if (s1.size() != s2.size())
   {
-    ROS_ERROR_STREAM("Joint arrays have unequal size, failed to check for large joint changes");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Joint arrays have unequal size, failed to check for large joint changes");
     return 1000;
   }
 
@@ -743,7 +749,7 @@ int SparsePlanner::interpolateSparseTrajectory(const SolutionArray& sparse_solut
     joint_points_map_.insert(std::make_pair(start_tpoint->getID(), start_jpoint));
 
     // interpolating
-    ROS_DEBUG_STREAM("Interpolation parameters: start index " << start_index << ", end index " << end_index);
+    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("descartes_planner"),"Interpolation parameters: start index " << start_index << ", end index " << end_index);
 
     double max_joint_change_found = 0;
     int max_joint_change_index = 0;
@@ -752,7 +758,7 @@ int SparsePlanner::interpolateSparseTrajectory(const SolutionArray& sparse_solut
       double t = double(pos - start_index) / double(end_index - start_index);
       if (!interpolateJointPose(start_jpose, end_jpose, t, rough_interp))
       {
-        ROS_ERROR_STREAM("Interpolation for point at position " << pos << "failed, aborting");
+        RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Interpolation for point at position " << pos << "failed, aborting");
         return (int)InterpolationResult::ERROR;
       }
 
@@ -767,7 +773,7 @@ int SparsePlanner::interpolateSparseTrajectory(const SolutionArray& sparse_solut
             max_joint_change_found = joint_change;
             max_joint_change_index = pos;
           }
-          ROS_DEBUG_STREAM("Interpolated point at position " << pos);
+          RCLCPP_DEBUG_STREAM(rclcpp::get_logger("descartes_planner"),"Interpolated point at position " << pos);
 
           // look up previous points joint solution
           const JointTrajectoryPt& last_joint_pt = joint_points_map_.at(cart_points_[pos - 1]->getID());
@@ -781,7 +787,7 @@ int SparsePlanner::interpolateSparseTrajectory(const SolutionArray& sparse_solut
           // check validity of joint motion
           if (tm.isSpecified() && !robot_model->isValidMove(last_joint_pose, aprox_interp, tm.upper))
           {
-            ROS_WARN_STREAM("Joint velocity checking failed for point " << pos << ". Replanning.");
+            RCLCPP_WARN_STREAM(rclcpp::get_logger("descartes_planner"),"Joint velocity checking failed for point " << pos << ". Replanning.");
             point_pos = pos;
             sparse_index = k;
             return static_cast<int>(InterpolationResult::REPLAN);
@@ -791,7 +797,7 @@ int SparsePlanner::interpolateSparseTrajectory(const SolutionArray& sparse_solut
         }
         else
         {
-          ROS_WARN_STREAM("Couldn't find a closest joint pose for point " << cart_point->getID() << ", replanning");
+          RCLCPP_WARN_STREAM(rclcpp::get_logger("descartes_planner"),"Couldn't find a closest joint pose for point " << cart_point->getID() << ", replanning");
           sparse_index = k;
           point_pos = pos;
           return (int)InterpolationResult::REPLAN;
@@ -806,7 +812,7 @@ int SparsePlanner::interpolateSparseTrajectory(const SolutionArray& sparse_solut
 
         if (tm.isSpecified() && !robot_model->isValidMove(last_joint_pose, rough_interp, tm.upper))
         {
-          ROS_WARN_STREAM("Joint velocity checking failed for last-point " << pos << ". Adding previous point.");
+          RCLCPP_WARN_STREAM(rclcpp::get_logger("descartes_planner"),"Joint velocity checking failed for last-point " << pos << ". Adding previous point.");
           point_pos = (pos - 1);
           sparse_index = k;
           return static_cast<int>(InterpolationResult::REPLAN);
@@ -817,7 +823,7 @@ int SparsePlanner::interpolateSparseTrajectory(const SolutionArray& sparse_solut
 
     if (max_joint_change_found > MAX_JOINT_CHANGE)
     {
-      ROS_WARN_STREAM("Joint changes greater that " << MAX_JOINT_CHANGE << " detected for point "
+      RCLCPP_WARN_STREAM(rclcpp::get_logger("descartes_planner"),"Joint changes greater that " << MAX_JOINT_CHANGE << " detected for point "
                                                     << max_joint_change_index << ", replanning");
       sparse_index = k;
       point_pos = max_joint_change_index;

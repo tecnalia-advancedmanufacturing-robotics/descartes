@@ -2,7 +2,7 @@
  * Copyright (c) 2014, Southwest Research Institute
  * All rights reserved
  *********************************************************************/
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 #include <descartes_planner/dense_planner.h>
 #include <descartes_planner/sparse_planner.h>
 

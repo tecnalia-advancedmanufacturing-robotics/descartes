@@ -18,8 +18,8 @@
 
 #include "descartes_moveit/ikfast_moveit_state_adapter.h"
 
-#include <eigen_conversions/eigen_msg.h>
-#include <ros/node_handle.h>
+#include <tf2_eigen/tf2_eigen.hpp>
+#include <rclcpp/node.hpp>
 
 const static std::string DEFAULT_BASE_FRAME = "base_link";
 const static std::string DEFAULT_TOOL_FRAME = "tool0";
@@ -51,12 +51,12 @@ static size_t closestJointPose(const std::vector<double>& target, const std::vec
   return closest;
 }
 
-bool descartes_moveit::IkFastMoveitStateAdapter::initialize(const std::string& robot_description,
+bool descartes_moveit::IkFastMoveitStateAdapter::initialize(const rclcpp::Node::SharedPtr& node, const std::string& robot_description,
                                                             const std::string& group_name,
                                                             const std::string& world_frame,
                                                             const std::string& tcp_frame)
 {
-  if (!MoveitStateAdapter::initialize(robot_description, group_name, world_frame, tcp_frame))
+  if (!MoveitStateAdapter::initialize(node, robot_description, group_name, world_frame, tcp_frame))
   {
     return false;
   }
@@ -142,15 +142,15 @@ bool descartes_moveit::IkFastMoveitStateAdapter::getAllIK(const Eigen::Isometry3
   Eigen::Isometry3d tool_pose = world_to_base_.frame_inv * pose * tool0_to_tip_.frame;
 
   // convert to geometry_msgs ...
-  geometry_msgs::Pose geometry_pose;
-  tf::poseEigenToMsg(tool_pose, geometry_pose);
-  std::vector<geometry_msgs::Pose> poses = { geometry_pose };
+  geometry_msgs::msg::Pose geometry_pose = tf2::toMsg(tool_pose);
+  std::vector<geometry_msgs::msg::Pose> poses = { geometry_pose };
 
   std::vector<double> dummy_seed(getDOF(), 0.0);
   std::vector<std::vector<double>> joint_results;
   kinematics::KinematicsResult result;
   kinematics::KinematicsQueryOptions options;  // defaults are reasonable as of Indigo
 
+  auto clock = rclcpp::Clock();
   if (!solver->getPositionIK(poses, dummy_seed, joint_results, result, options))
   {
     return false;
@@ -162,7 +162,7 @@ bool descartes_moveit::IkFastMoveitStateAdapter::getAllIK(const Eigen::Isometry3
         joint_poses.push_back(variant);
 
   if (joint_poses.size()>50){
-    ROS_WARN_THROTTLE(1.0, "GetAllIK returning a lot of variants, possibly due to a lot of joints having more than 2*PI range, consider limiting some of the joints");
+    RCLCPP_WARN_THROTTLE(rclcpp::get_logger("descartes_moveit"), clock, 1.0, "GetAllIK returning a lot of variants, possibly due to a lot of joints having more than 2*PI range, consider limiting some of the joints");
   }
 
   return joint_poses.size() > 0;
@@ -187,7 +187,7 @@ bool descartes_moveit::IkFastMoveitStateAdapter::getFK(const std::vector<double>
   const auto& solver = joint_group_->getSolverInstance();
 
   std::vector<std::string> tip_frame = { solver->getTipFrame() };
-  std::vector<geometry_msgs::Pose> output;
+  std::vector<geometry_msgs::msg::Pose> output;
 
   if (!isValid(joint_pose))
     return false;
@@ -195,7 +195,7 @@ bool descartes_moveit::IkFastMoveitStateAdapter::getFK(const std::vector<double>
   if (!solver->getPositionFK(tip_frame, joint_pose, output))
     return false;
 
-  tf::poseMsgToEigen(output[0], pose);  // pose in frame of IkFast base
+  tf2::fromMsg(output[0], pose);  // pose in frame of IkFast base
   pose = world_to_base_.frame * pose * tool0_to_tip_.frame_inv;
   return true;
 }
@@ -208,7 +208,6 @@ void descartes_moveit::IkFastMoveitStateAdapter::setState(const moveit::core::Ro
 
 bool descartes_moveit::IkFastMoveitStateAdapter::computeIKFastTransforms()
 {
-  ros::NodeHandle nh;
 
   // Default frames
   std::string ikfast_base_frame = DEFAULT_BASE_FRAME;
@@ -222,9 +221,11 @@ bool descartes_moveit::IkFastMoveitStateAdapter::computeIKFastTransforms()
     ikfast_tool_frame = solver->getTipFrame();
   }
 
+  // TODO: check if this works in ROS2
   // Can also be overriden with parameters
-  nh.getParam("ikfast_base_frame", ikfast_base_frame);
-  nh.getParam("ikfast_tool_frame", ikfast_tool_frame);
+  rclcpp::Node node("descartes_moveit_ikfast_state_adapter");
+  node.get_parameter_or("ikfast_base_frame", ikfast_base_frame, ikfast_base_frame);
+  node.get_parameter_or("ikfast_tool_frame", ikfast_tool_frame, ikfast_tool_frame);
 
   if (!robot_state_->knowsFrameTransform(ikfast_base_frame))
   {

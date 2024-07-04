@@ -1,16 +1,16 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(descartes_tests)
 
-add_compile_options(-std=c++11 -Wall -Wextra)
+add_compile_options(-std=c++17 -Wall -Wextra)
 
-find_package(catkin REQUIRED COMPONENTS
+find_package(ament_cmake REQUIRED COMPONENTS
   descartes_moveit
   descartes_planner
   descartes_trajectory
   eigen_conversions
 )
 
-catkin_package(
+set(THIS_PACKAGE_INCLUDE_DEPENDS
   INCLUDE_DIRS
     include
   LIBRARIES
@@ -24,22 +24,22 @@ catkin_package(
 
 include_directories(
   include
-  ${catkin_INCLUDE_DIRS}
+  ${ament_cmake_INCLUDE_DIRS}
 )
 
 add_library(${PROJECT_NAME}
   src/cartesian_robot.cpp
 )
 
-add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${ament_cmake_EXPORTED_TARGETS})
 
 target_link_libraries(${PROJECT_NAME}
-  ${catkin_LIBRARIES}
+  ${ament_cmake_LIBRARIES}
 )
 
 install(TARGETS ${PROJECT_NAME}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  ARCHIVE DESTINATION lib/${PROJECT_NAME}
+  LIBRARY DESTINATION lib/${PROJECT_NAME}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
@@ -50,7 +50,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
 
 if(CATKIN_ENABLE_TESTING)
   # Trajectory Unit Tests
-  catkin_add_gtest(${PROJECT_NAME}_trajectory_utest
+  ament_cmake_add_gtest(${PROJECT_NAME}_trajectory_utest
     test/trajectory/utest.cpp
     test/trajectory/axial_symmetric_pt.cpp
     test/trajectory/cart_trajectory_pt.cpp
@@ -61,7 +61,7 @@ if(CATKIN_ENABLE_TESTING)
   target_link_libraries(${PROJECT_NAME}_trajectory_utest ${PROJECT_NAME})
 
   # Planner unit tests
-  catkin_add_gtest(${PROJECT_NAME}_planner_utest
+  ament_cmake_add_gtest(${PROJECT_NAME}_planner_utest
     test/planner/utest.cpp
     test/planner/dense_planner.cpp
     test/planner/sparse_planner.cpp

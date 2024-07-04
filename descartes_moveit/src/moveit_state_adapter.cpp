@@ -18,14 +18,14 @@
 
 #include <console_bridge/console.h>
 
+#include "moveit/robot_state/robot_state.h"
 #include "descartes_moveit/utils.h"
 #include "descartes_moveit/moveit_state_adapter.h"
 #include "descartes_core/pretty_print.hpp"
 #include "descartes_moveit/seed_search.h"
 
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.hpp>
 #include <random_numbers/random_numbers.h>
-#include <ros/assert.h>
 #include <sstream>
 
 const static int SAMPLE_ITERATIONS = 10;
@@ -46,7 +46,7 @@ bool getJointVelocityLimits(const moveit::core::RobotState& state, const std::st
     if (model->getType() != moveit::core::JointModel::REVOLUTE &&
         model->getType() != moveit::core::JointModel::PRISMATIC)
     {
-      ROS_ERROR_STREAM(__FUNCTION__ << " Unexpected joint type. Currently works only"
+      RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_moveit"),__FUNCTION__ << " Unexpected joint type. Currently works only"
                                        " with single axis prismatic or revolute joints.");
       return false;
     }
@@ -68,12 +68,12 @@ MoveitStateAdapter::MoveitStateAdapter() : world_to_root_(Eigen::Isometry3d::Ide
 {
 }
 
-bool MoveitStateAdapter::initialize(const std::string& robot_description, const std::string& group_name,
+bool MoveitStateAdapter::initialize(const rclcpp::Node::SharedPtr& node, const std::string& robot_description, const std::string& group_name,
                                     const std::string& world_frame, const std::string& tcp_frame)
 
 {
   // Initialize MoveIt state objects
-  planning_scene_monitor::PlanningSceneMonitorPtr psm(new planning_scene_monitor::PlanningSceneMonitor(robot_description));
+  planning_scene_monitor::PlanningSceneMonitorPtr psm(new planning_scene_monitor::PlanningSceneMonitor(node, robot_description));
   return initialize(psm, group_name, world_frame, tcp_frame);
 }
 
@@ -256,7 +256,7 @@ bool MoveitStateAdapter::isInCollision(const std::vector<double>& joint_pose) co
     }
 
     // Seed with current state in case their are joints outside of the planning group
-    robot_state::RobotState robot_state_copy = (*ls)->getCurrentState();
+    moveit::core::RobotState robot_state_copy = (*ls)->getCurrentState();
     robot_state_copy.setJointGroupPositions(group_name_, joint_pose);
 
     // If the state is colliding return false

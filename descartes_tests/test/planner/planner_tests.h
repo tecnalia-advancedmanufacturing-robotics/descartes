@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <ros/console.h>
+#include <rclcpp/logging.hpp>
 #include <descartes_core/path_planner_base.h>
 #include <descartes_tests/cartesian_robot.h>
 

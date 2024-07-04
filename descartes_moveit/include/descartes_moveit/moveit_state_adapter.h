@@ -42,7 +42,7 @@ public:
   {
   }
 
-  virtual bool initialize(const std::string &robot_description, const std::string &group_name,
+  virtual bool initialize(const rclcpp::Node::SharedPtr& node, const std::string &robot_description, const std::string &group_name,
                           const std::string &world_frame, const std::string &tcp_frame);
 
   virtual bool initialize(planning_scene_monitor::PlanningSceneMonitorPtr& psm, const std::string &group_name,

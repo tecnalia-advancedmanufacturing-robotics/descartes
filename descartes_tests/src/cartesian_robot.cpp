@@ -19,7 +19,7 @@
 #include "descartes_tests/cartesian_robot.h"
 #include "descartes_core/pretty_print.hpp"
 #include "eigen_conversions/eigen_kdl.h"
-#include "ros/console.h"
+#include "rclcpp/logging.hpp"
 #include "ros/assert.h"
 
 namespace descartes_tests
@@ -30,7 +30,7 @@ static void displayRange(double pos_range, double orient_range)
 {
   double pos_limit = pos_range / 2.0;
   double orient_limit = orient_range / 2.0;
-  ROS_INFO_STREAM("Creating Cartesian Robot with valid linear ranges from "
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("descartes_tests"),"Creating Cartesian Robot with valid linear ranges from "
                   << -pos_limit << " to " << pos_limit << ", and orientation from " << -orient_limit << " to "
                   << orient_limit);
 }
@@ -43,7 +43,7 @@ CartesianRobot::CartesianRobot() : pos_range_(2.0), orient_range_(M_PI_2), joint
 CartesianRobot::CartesianRobot(double pos_range, double orient_range, const std::vector<double> &joint_velocities)
   : pos_range_(pos_range), orient_range_(orient_range), joint_velocities_(joint_velocities)
 {
-  ROS_ASSERT(joint_velocities_.size() == DOF);
+  RCLCPP_ASSERT(rclcpp::get_logger("descartes_tests"),joint_velocities_.size() == DOF);
   displayRange(pos_range_, orient_range_);
 }
 
@@ -108,7 +108,7 @@ bool CartesianRobot::getFK(const std::vector<double> &joint_pose, Eigen::Isometr
   }
   else
   {
-    ROS_WARN_STREAM("Invalid joint pose passed to get FK, joint pose" << joint_pose);
+    RCLCPP_WARN_STREAM(rclcpp::get_logger("descartes_tests"),"Invalid joint pose passed to get FK, joint pose" << joint_pose);
     rtn = false;
   }
 
@@ -135,7 +135,7 @@ bool CartesianRobot::isValid(const std::vector<double> &joint_pose) const
   }
   else
   {
-    ROS_DEBUG_STREAM("Joint pose size: " << joint_pose.size() << "exceeds " << DOF);
+    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("descartes_tests"),"Joint pose size: " << joint_pose.size() << "exceeds " << DOF);
   }
 
   return rtn;

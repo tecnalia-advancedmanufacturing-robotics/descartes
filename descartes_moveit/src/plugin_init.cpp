@@ -2,7 +2,7 @@
  * Copyright (c) 2014, Southwest Research Institute
  * All rights reserved
  *********************************************************************/
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 #include <descartes_moveit/moveit_state_adapter.h>
 #include <descartes_moveit/ikfast_moveit_state_adapter.h>
 

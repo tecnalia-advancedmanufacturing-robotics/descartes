@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version='1.0' encoding='utf-8'?>
 <package format="2">
   <name>descartes_moveit</name>
   <version>0.0.1</version>
@@ -10,9 +10,9 @@
 
   <license>Apache2</license>
 
-  <author >Shaun Edwards</author>
+  <author>Shaun Edwards</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>rosconsole_bridge</depend>
   <depend>moveit_core</depend>
@@ -25,7 +25,10 @@
   <build_depend>eigen</build_depend>
 
   <export>
-    <descartes_core plugin="${prefix}/moveit_adapter_plugins.xml"/>
-    <rosdoc config="rosdoc.yaml"/>
+    <descartes_core plugin="${prefix}/moveit_adapter_plugins.xml" />
+    <rosdoc config="rosdoc.yaml" />
+    <build_type>ament_cmake</build_type>
   </export>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
 </package>

@@ -1,12 +1,25 @@
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.5)
 project(descartes_core)
 
-add_compile_options(-std=c++11 -Wall -Wextra)
+# Add support for C++11
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 
-find_package(catkin REQUIRED COMPONENTS
-  cmake_modules
-  roscpp
-)
+find_package(ament_cmake REQUIRED)
+
+set(INCLUDE_DIRS include ${ament_cmake_INCLUDE_DIRS})
+include_directories(${INCLUDE_DIRS})
+
+set(LIBRARY_DIRS ${ament_cmake_LIBRARY_DIRS})
+
+link_directories(${LIBRARY_DIRS})
+
+set(LIBS ${ament_cmake_LIBRARIES})
+
+add_compile_options(-std=c++17 -Wall -Wextra)
+
+find_package(ament_cmake REQUIRED COMPONENTS cmake_modules rclcpp)
 
 find_package(Boost REQUIRED)
 find_package(Eigen3 REQUIRED)
@@ -16,44 +29,39 @@ if(NOT EIGEN3_INCLUDE_DIRS)
   set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
 endif()
 
-catkin_package(
-  INCLUDE_DIRS
-    include
-  LIBRARIES
-    ${PROJECT_NAME}
-  CATKIN_DEPENDS
-    roscpp
-  DEPENDS
-    Boost
-    EIGEN3
-)
+find_package(rclcpp REQUIRED)
+find_package(Boost REQUIRED)
+# find_package(EIGEN3 REQUIRED)
+# foreach(dep_pkg ${THIS_PACKAGE_INCLUDE_DEPENDS})
+#     find_package(${dep_pkg} REQUIRED)
+# endforeach()
 
 ###########
 ## Build ##
 ###########
-include_directories(include
-                    ${catkin_INCLUDE_DIRS}
-                    ${Boost_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIRS}
-)
 
-add_library(${PROJECT_NAME}
-            src/trajectory_id.cpp
-)
+add_library(${PROJECT_NAME} src/trajectory_id.cpp)
 
-target_link_libraries(${PROJECT_NAME}
-                      ${catkin_LIBRARIES}
-                      ${EIGEN3_LIBRARIES}
-)
+target_link_libraries(${PROJECT_NAME} ${ament_cmake_LIBRARIES}
+  ${EIGEN3_LIBRARIES})
 
 #############
 ## Install ##
 #############
 
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION include/${PROJECT_NAME})
 install(
-    TARGETS ${PROJECT_NAME}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+  TARGETS ${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
 
-install(
-    DIRECTORY include/${PROJECT_NAME}/
-    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+ament_export_dependencies(ament_cmake)
+ament_export_include_directories(${INCLUDE_DIRS})
+ament_export_libraries(${PROJECT_NAME} ${LIBS})
+
+ament_package()

@@ -25,9 +25,9 @@
 #ifndef CART_TRAJECTORY_PT_H_
 #define CART_TRAJECTORY_PT_H_
 
-#include <moveit/kinematic_constraints/kinematic_constraint.h>
-#include "descartes_core/trajectory_pt.h"
-#include "ros/console.h"
+// #include <moveit/kinematic_constraints/kinematic_constraint.h>
+#include <descartes_core/trajectory_pt.h>
+#include "rclcpp/logging.hpp"
 
 typedef boost::shared_ptr<kinematic_constraints::PositionConstraint> PositionConstraintPtr;
 typedef boost::shared_ptr<kinematic_constraints::OrientationConstraint> OrientationConstraintPtr;
@@ -102,10 +102,10 @@ struct ToleranceBase
     , y_lower(y_lower_lim)
     , z_lower(z_lower_lim)
   {
-    ROS_DEBUG_STREAM_NAMED("ToleranceBase", "Creating fully defined Tolerance(base type)");
-    ROS_DEBUG_STREAM_NAMED("ToleranceBase", "Initializing x tolerance (lower/upper)" << x_lower << "/" << x_upper);
-    ROS_DEBUG_STREAM_NAMED("ToleranceBase", "Initializing y tolerance (lower/upper)" << y_lower << "/" << y_upper);
-    ROS_DEBUG_STREAM_NAMED("ToleranceBase", "Initializing z tolerance (lower/upper)" << z_lower << "/" << z_upper);
+    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ToleranceBase"), "Creating fully defined Tolerance(base type)");
+    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ToleranceBase"), "Initializing x tolerance (lower/upper)" << x_lower << "/" << x_upper);
+    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ToleranceBase"), "Initializing y tolerance (lower/upper)" << y_lower << "/" << y_upper);
+    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ToleranceBase"), "Initializing z tolerance (lower/upper)" << z_lower << "/" << z_upper);
   }
 
   void clear()
@@ -129,7 +129,7 @@ struct PositionTolerance : public ToleranceBase
                     double z_upper_lim)
     : ToleranceBase(x_lower_lim, x_upper_lim, y_lower_lim, y_upper_lim, z_lower_lim, z_upper_lim)
   {
-    ROS_DEBUG_STREAM_NAMED("PositionTolerance", "Created fully defined Position Tolerance");
+    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("PositionTolerance"), "Created fully defined Position Tolerance");
   }
 };
 
@@ -146,7 +146,7 @@ struct OrientationTolerance : public ToleranceBase
                        double z_lower_lim, double z_upper_lim)
     : ToleranceBase(x_lower_lim, x_upper_lim, y_lower_lim, y_upper_lim, z_lower_lim, z_upper_lim)
   {
-    ROS_DEBUG_STREAM_NAMED("OrientationTolerance","Created fully defined Orientation Tolerance");
+    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("OrientationTolerance"),"Created fully defined Orientation Tolerance");
   }
 };
 
