@@ -51,14 +51,14 @@ add_library(${PROJECT_NAME} src/ros_conversions.cpp)
 ament_target_dependencies(${PROJECT_NAME} ${AMENT_DEPENDENCIES})
 
 target_link_libraries(${PROJECT_NAME} ${ament_cmake_LIBRARIES} Eigen3::Eigen)
-
-install(TARGETS ${PROJECT_NAME}
-  ARCHIVE
-  DESTINATION lib/${PROJECT_NAME}
-  LIBRARY
-  DESTINATION lib/${PROJECT_NAME}
-  RUNTIME
-  DESTINATION lib/${PROJECT_NAME})
+install(
+  TARGETS ${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
 
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION include/${PROJECT_NAME}

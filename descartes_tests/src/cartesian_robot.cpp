@@ -18,9 +18,14 @@
 
 #include "descartes_tests/cartesian_robot.h"
 #include "descartes_core/pretty_print.hpp"
-#include "eigen_conversions/eigen_kdl.h"
+#include "tf2_eigen/tf2_eigen.hpp"
+
 #include "rclcpp/logging.hpp"
-#include "ros/assert.h"
+#include <rcpputils/asserts.hpp>
+//kdl
+#include <kdl/frames.hpp>
+#include <tf2_eigen_kdl/tf2_eigen_kdl.hpp>
+#include "tf2_kdl/tf2_kdl.hpp"
 
 namespace descartes_tests
 {
@@ -43,7 +48,7 @@ CartesianRobot::CartesianRobot() : pos_range_(2.0), orient_range_(M_PI_2), joint
 CartesianRobot::CartesianRobot(double pos_range, double orient_range, const std::vector<double> &joint_velocities)
   : pos_range_(pos_range), orient_range_(orient_range), joint_velocities_(joint_velocities)
 {
-  RCLCPP_ASSERT(rclcpp::get_logger("descartes_tests"),joint_velocities_.size() == DOF);
+  rcpputils::assert_true(joint_velocities_.size() == DOF);
   displayRange(pos_range_, orient_range_);
 }
 
@@ -68,7 +73,7 @@ bool CartesianRobot::getIK(const Eigen::Isometry3d &pose, const std::vector<doub
 {
   bool rtn = false;
   KDL::Frame kdl_frame;
-  tf::transformEigenToKDL(pose, kdl_frame);
+  tf2::transformEigenToKDL(pose, kdl_frame);
 
   joint_pose.resize(DOF, 0.0);
   joint_pose[0] = kdl_frame.p.x();
@@ -146,7 +151,7 @@ bool CartesianRobot::isValid(const Eigen::Isometry3d &pose) const
   bool rtn = false;
   double R, P, Y;
   KDL::Frame kdl_frame;
-  tf::transformEigenToKDL(pose, kdl_frame);
+  tf2::fromMsg(pose, kdl_frame);
   kdl_frame.M.GetRPY(R, P, Y);
 
   double pos_limit = pos_range_ / 2.0;
