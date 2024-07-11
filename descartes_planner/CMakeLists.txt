@@ -82,7 +82,14 @@ target_compile_options(${PROJECT_NAME} PRIVATE ${OpenMP_FLAGS})
 #############
 ## Install ##
 #############
-install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib/${PROJECT_NAME})
+install(
+  TARGETS ${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
 
 install(FILES ${PROJECT_NAME}_plugins.xml
   DESTINATION share/${PROJECT_NAME})

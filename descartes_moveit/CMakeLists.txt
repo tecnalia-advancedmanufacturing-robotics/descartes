@@ -50,8 +50,14 @@ target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)
 #############
 ## Install ##
 #############
-
-install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib/${PROJECT_NAME})
+install(
+  TARGETS ${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
 
 install(FILES moveit_adapter_plugins.xml
   DESTINATION share/${PROJECT_NAME})
