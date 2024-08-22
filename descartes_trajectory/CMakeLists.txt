@@ -38,7 +38,7 @@ endif()
 ## Build ##
 ###########
 
-add_library(${PROJECT_NAME} src/axial_symmetric_pt.cpp
+add_library(${PROJECT_NAME} SHARED src/axial_symmetric_pt.cpp
   src/cart_trajectory_pt.cpp src/joint_trajectory_pt.cpp src/trajectory.cpp)
 
 ament_target_dependencies(${PROJECT_NAME} descartes_core moveit_core)

@@ -40,7 +40,7 @@ find_package(Boost REQUIRED)
 ## Build ##
 ###########
 
-add_library(${PROJECT_NAME} src/trajectory_id.cpp)
+add_library(${PROJECT_NAME} SHARED src/trajectory_id.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${ament_cmake_LIBRARIES}
   ${EIGEN3_LIBRARIES})

@@ -41,7 +41,7 @@ endif()
 ###########
 
 ## Descartes MoveIt lib
-add_library(${PROJECT_NAME} src/ikfast_moveit_state_adapter.cpp
+add_library(${PROJECT_NAME} SHARED src/ikfast_moveit_state_adapter.cpp
   src/moveit_state_adapter.cpp src/plugin_init.cpp src/seed_search.cpp)
 ament_target_dependencies(${PROJECT_NAME} ${AMENT_DEPENDENCIES})
 target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)

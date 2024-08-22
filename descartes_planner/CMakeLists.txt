@@ -68,7 +68,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
 ###########
 
 ## DescartesTrajectoryPt lib
-add_library(${PROJECT_NAME} src/dense_planner.cpp
+add_library(${PROJECT_NAME} SHARED src/dense_planner.cpp
   src/ladder_graph_dag_search.cpp src/planning_graph.cpp src/plugin_init.cpp
   src/sparse_planner.cpp)
 
