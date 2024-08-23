@@ -17,6 +17,8 @@
   <depend>descartes_moveit</depend>
   <depend>descartes_planner</depend>
   <depend>descartes_trajectory</depend>
+  <depend>tf2_kdl</depend>
+  <depend>tf2_eigen_kdl</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
