@@ -14,7 +14,6 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>rosconsole_bridge</depend>
   <depend>moveit_core</depend>
   <depend>tf2</depend>
   <depend>descartes_core</depend>
