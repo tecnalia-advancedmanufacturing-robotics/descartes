@@ -27,7 +27,6 @@ set(AMENT_DEPENDENCIES
   moveit_core
   tf2_eigen_kdl
   tf2_kdl
-  # eigen_conversions
 )
 foreach(DEP ${AMENT_DEPENDENCIES})
   find_package(${DEP} REQUIRED)
@@ -36,8 +35,7 @@ endforeach()
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS descartes_moveit descartes_planner descartes_trajectory
-  eigen_conversions)
+  CATKIN_DEPENDS descartes_moveit descartes_planner descartes_trajectory)
 
 add_library(${PROJECT_NAME} src/cartesian_robot.cpp)
 

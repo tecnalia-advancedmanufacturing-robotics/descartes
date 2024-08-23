@@ -19,7 +19,7 @@ set(LIBS ${ament_cmake_LIBRARIES})
 
 add_compile_options(-std=c++17 -Wall -Wextra)
 
-find_package(ament_cmake REQUIRED COMPONENTS cmake_modules rclcpp)
+find_package(ament_cmake REQUIRED COMPONENTS rclcpp)
 
 find_package(Boost REQUIRED)
 find_package(Eigen3 REQUIRED)

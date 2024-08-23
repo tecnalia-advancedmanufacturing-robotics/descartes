@@ -12,14 +12,12 @@
 
   <test_depend>gtest</test_depend>
   <test_depend>rostest</test_depend>
-  <test_depend>rosunit</test_depend>
   <test_depend>moveit_kinematics</test_depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>descartes_moveit</depend>
   <depend>descartes_planner</depend>
   <depend>descartes_trajectory</depend>
-  <depend>eigen_conversions</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
