@@ -123,7 +123,8 @@ public:
 
   // TODO complete
   virtual bool getClosestJointPose(const std::vector<double> &seed_state, const descartes_core::RobotModel &model,
-                                   std::vector<double> &joint_pose) const;
+                                   std::vector<double> &joint_pose, bool check_validity = true) const;
+
   // TODO complete
   virtual bool getNominalJointPose(const std::vector<double> &seed_state, const descartes_core::RobotModel &model,
                                    std::vector<double> &joint_pose) const;

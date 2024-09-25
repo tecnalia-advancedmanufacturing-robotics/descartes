@@ -148,12 +148,12 @@ void SparsePlanner::setSampling(double sampling)
   sampling_ = sampling;
 }
 
-bool SparsePlanner::planPath(const std::vector<TrajectoryPtPtr>& traj)
+float SparsePlanner::planPath(const std::vector<TrajectoryPtPtr>& traj)
 {
   if (error_code_ == descartes_core::PlannerError::UNINITIALIZED)
   {
     ROS_ERROR_STREAM("Planner has not been initialized");
-    return false;
+    return 0.0;
   }
 
   ros::Time start_time = ros::Time::now();
@@ -175,10 +175,10 @@ bool SparsePlanner::planPath(const std::vector<TrajectoryPtPtr>& traj)
   else
   {
     error_code_ = descartes_core::PlannerError::IK_NOT_AVAILABLE;
-    return false;
+    return 0.0;
   }
 
-  return true;
+  return 1.0;
 }
 
 bool SparsePlanner::addAfter(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp)

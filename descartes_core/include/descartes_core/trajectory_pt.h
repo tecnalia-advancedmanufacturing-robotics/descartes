@@ -128,7 +128,7 @@ public:
    * @return True if calculation successful. joint_pose untouched if return is false.
    */
   virtual bool getClosestJointPose(const std::vector<double> &seed_state, const RobotModel &model,
-                                   std::vector<double> &joint_pose) const = 0;
+                                   std::vector<double> &joint_pose, bool check_validity=true) const = 0;
 
   /**@brief Get single Joint pose closest to seed_state.
    * @param seed_state Joint_position seed.

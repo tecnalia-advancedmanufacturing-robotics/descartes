@@ -38,38 +38,41 @@ PlanningGraph::PlanningGraph(RobotModelConstPtr model, CostFunction cost_functio
   : graph_(model->getDOF()), robot_model_(std::move(model)), custom_cost_function_(cost_function_callback)
 {}
 
-bool PlanningGraph::insertGraph(const std::vector<TrajectoryPtPtr>& points)
+float PlanningGraph::insertGraph(const std::vector<TrajectoryPtPtr>& points)
 {
-  if (points.size() < 2)
+  std::size_t size = points.size();
+  if (size < 2)
   {
     ROS_ERROR_STREAM(__FUNCTION__ << ": must provide at least 2 input trajectory points.");
     return false;
   }
 
-  if (graph_.size() > 0) clear();
+  if (graph_.size() > 0)
+    clear();
 
   // generate solutions for this point
   std::vector<std::vector<std::vector<double>>> all_joint_sols;
-  if (!calculateJointSolutions(points.data(), points.size(), all_joint_sols))
+  int computed_size = calculateJointSolutions(points.data(), size, all_joint_sols);
+  if (computed_size < size)
   {
-    return false;
+    failing_point_ = points[computed_size];
   }
 
   // insert into graph as vertices
-  graph_.resize(points.size());
-  for (std::size_t i = 0; i < points.size(); ++i)
+  graph_.resize(computed_size);
+  for (std::size_t i = 0; i < computed_size; ++i)
   {
     graph_.assignRung(i, points[i]->getID(), points[i]->getTiming(), all_joint_sols[i]);
   }
 
-  // now we have a graph with data in the 'rungs' and we need to compute the edges
-  #pragma omp parallel for
+// now we have a graph with data in the 'rungs' and we need to compute the edges
+#pragma omp parallel for
   for (std::size_t i = 0; i < graph_.size() - 1; ++i)
   {
     computeAndAssignEdges(i, i + 1);
   }
 
-  return true;
+  return ((float)computed_size) / ((float)size);
 }
 
 bool PlanningGraph::addTrajectory(TrajectoryPtPtr point, TrajectoryPt::ID previous_id, TrajectoryPt::ID next_id)
@@ -159,6 +162,23 @@ bool PlanningGraph::removeTrajectory(const TrajectoryPt::ID& point)
   return true;
 }
 
+bool PlanningGraph::getFailingPointReason(std::ostream& ostream) const
+{
+  // TODOIÑIGO: Finish this function
+  if (failing_point_)
+  {
+    std::vector<double> seed_state, joint_pose;
+    final_computed_point.getNominalJointPose({}, *robot_model_, seed_state);
+    if (!failing_point_->getClosestJointPose(seed_state, *robot_model_, joint_pose, false))
+    {
+      ostream << "IK not returning any solution, point is out of reach";
+      return false;
+    }
+    robot_model_->isValid(joint_pose, true, ostream);
+  }
+  return false;
+}
+
 bool PlanningGraph::getShortestPath(double& cost, std::list<JointTrajectoryPt>& path)
 {
   DAGSearch search (graph_);
@@ -177,22 +197,23 @@ bool PlanningGraph::getShortestPath(double& cost, std::list<JointTrajectoryPt>& 
     auto pt = JointTrajectoryPt(std::vector<double>(data, data + dof), tm);
     path.push_back(std::move(pt));
   }
+  final_computed_point = path.back();
 
   ROS_INFO("Computed path of length %lu with cost %lf", path_idxs.size(), cost);
 
   return true;
 }
 
-bool PlanningGraph::calculateJointSolutions(const TrajectoryPtPtr* points, const std::size_t count,
-                                            std::vector<std::vector<std::vector<double>>>& poses) const
+int PlanningGraph::calculateJointSolutions(const TrajectoryPtPtr* points, const std::size_t count,
+                                           std::vector<std::vector<std::vector<double>>>& poses) const
 {
   poses.resize(count);
-  bool success = true;
+  int success = count;
 
-  #pragma omp parallel for shared(success)
+#pragma omp parallel for shared(success)
   for (std::size_t i = 0; i < count; ++i)
   {
-    if (success)
+    if (i < success)
     {
       std::vector<std::vector<double>> joint_poses;
       points[i]->getJointPoses(*robot_model_, joint_poses);
@@ -200,7 +221,8 @@ bool PlanningGraph::calculateJointSolutions(const TrajectoryPtPtr* points, const
       if (joint_poses.empty())
       {
         ROS_ERROR_STREAM(__FUNCTION__ << ": IK failed for input trajectory point with ID = " << points[i]->getID());
-        success = false;
+        success = i;
+        points[i]->getJointPoses(*robot_model_, joint_poses);
       }
 
       poses[i] = std::move(joint_poses);
@@ -254,7 +276,7 @@ void PlanningGraph::computeAndAssignEdges(const std::size_t start_idx, const std
 template<typename EdgeBuilder>
 std::vector<LadderGraph::EdgeList> PlanningGraph::calculateEdgeWeights(EdgeBuilder&& builder, const std::vector<double>& start_joints,
                                                                        const std::vector<double>& end_joints, const size_t dof,
-                                                                       bool& has_edges) const
+bool& has_edges) const
 {
   const auto from_size = start_joints.size();
   const auto to_size = end_joints.size();

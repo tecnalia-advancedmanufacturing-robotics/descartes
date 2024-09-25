@@ -51,7 +51,7 @@ public:
    * @param points list of trajectory points to be used to construct the graph
    * @return True if the graph was successfully created
    */
-  bool insertGraph(const std::vector<descartes_core::TrajectoryPtPtr>& points);
+  float insertGraph(const std::vector<descartes_core::TrajectoryPtPtr>& points);
 
   /** @brief adds a single trajectory point to the graph
    * @param point The new point to add to the graph
@@ -66,6 +66,8 @@ public:
 
   bool getShortestPath(double &cost, std::list<descartes_trajectory::JointTrajectoryPt> &path);
 
+  bool getFailingPointReason(std::ostream& ostream) const;
+
   const descartes_planner::LadderGraph& graph() const noexcept { return graph_; }
 
   descartes_core::RobotModelConstPtr getRobotModel() const { return robot_model_; }
@@ -74,12 +76,14 @@ protected:
   descartes_planner::LadderGraph graph_;
   descartes_core::RobotModelConstPtr robot_model_;
   CostFunction custom_cost_function_;
+  descartes_core::TrajectoryPtPtr failing_point_;
+  descartes_trajectory::JointTrajectoryPt final_computed_point;
 
   /**
    * @brief A pair indicating the validity of the edge, and if valid, the cost associated
    *        with that edge
    */
-  bool calculateJointSolutions(const descartes_core::TrajectoryPtPtr* points, const std::size_t count,
+  int calculateJointSolutions(const descartes_core::TrajectoryPtPtr* points, const std::size_t count,
                                std::vector<std::vector<std::vector<double>>>& poses) const;
 
   /** @brief (Re)create the actual graph nodes(vertices) from the list of joint solutions (vertices) */

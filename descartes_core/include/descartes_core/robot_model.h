@@ -52,7 +52,7 @@ public:
    * @return True if successful
    */
   virtual bool getIK(const Eigen::Isometry3d &pose, const std::vector<double> &seed_state,
-                     std::vector<double> &joint_pose) const = 0;
+                     std::vector<double> &joint_pose, bool check_validity = true) const = 0;
 
   /**
    * @brief Returns "all" the joint poses("distributed" in joint space) for a desired affine pose.
@@ -62,7 +62,7 @@ public:
    * @param joint_poses Solution (if function successful).
    * @return True if successful
    */
-  virtual bool getAllIK(const Eigen::Isometry3d &pose, std::vector<std::vector<double> > &joint_poses) const = 0;
+  virtual bool getAllIK(const Eigen::Isometry3d &pose, std::vector<std::vector<double> > &joint_poses, bool check_validity = true) const = 0;
 
   /**
    * @brief Returns the affine pose
@@ -83,14 +83,16 @@ public:
    * @param joint_pose Pose to check
    * @return True if valid
    */
-  virtual bool isValid(const std::vector<double> &joint_pose) const = 0;
+  virtual bool isValid(const std::vector<double> &joint_pose, bool explain = false,
+                       std::ostream& ostream = std::cerr) const = 0;
 
   /**
    * @brief Performs all necessary checks to determine affine pose is valid
    * @param pose Affine pose of TOOL in WOBJ frame
    * @return True if valid
    */
-  virtual bool isValid(const Eigen::Isometry3d &pose) const = 0;
+  virtual bool isValid(const Eigen::Isometry3d &pose, bool explain = false,
+                       std::ostream& ostream = std::cerr) const = 0;
 
   /**
    * @brief Returns the joint velocity limits for each joint in the robot kinematic model

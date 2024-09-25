@@ -137,7 +137,7 @@ descartes_core::TrajectoryPtPtr DensePlanner::get(const descartes_core::Trajecto
   return p;
 }
 
-bool DensePlanner::planPath(const std::vector<descartes_core::TrajectoryPtPtr>& traj)
+float DensePlanner::planPath(const std::vector<descartes_core::TrajectoryPtPtr>& traj)
 {
   if (error_code_ == descartes_core::PlannerError::UNINITIALIZED)
   {
@@ -148,16 +148,14 @@ bool DensePlanner::planPath(const std::vector<descartes_core::TrajectoryPtPtr>& 
   path_.clear();
   error_code_ = descartes_core::PlannerError::EMPTY_PATH;
 
-  if (planning_graph_->insertGraph(traj))
-  {
-    updatePath();
-  }
-  else
+  float fraction = planning_graph_->insertGraph(traj);
+  updatePath();
+  if (fraction != 1.0)
   {
     error_code_ = descartes_core::PlannerError::IK_NOT_AVAILABLE;
   }
 
-  return descartes_core::PlannerError::OK == error_code_;
+  return fraction;
 }
 
 bool DensePlanner::getPath(std::vector<descartes_core::TrajectoryPtPtr>& path) const
@@ -166,7 +164,7 @@ bool DensePlanner::getPath(std::vector<descartes_core::TrajectoryPtPtr>& path) c
     return false;
 
   path.assign(path_.begin(), path_.end());
-  return error_code_ == descartes_core::PlannerError::OK;
+  return true;
 }
 
 bool DensePlanner::addAfter(const descartes_core::TrajectoryPt::ID& ref_id, descartes_core::TrajectoryPtPtr tp)

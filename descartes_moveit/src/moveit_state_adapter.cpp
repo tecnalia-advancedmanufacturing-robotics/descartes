@@ -139,13 +139,13 @@ bool MoveitStateAdapter::initialize(planning_scene_monitor::PlanningSceneMonitor
 }
 
 bool MoveitStateAdapter::getIK(const Eigen::Isometry3d& pose, const std::vector<double>& seed_state,
-                               std::vector<double>& joint_pose) const
+                               std::vector<double>& joint_pose, bool check_validity) const
 {
   robot_state_->setJointGroupPositions(group_name_, seed_state);
-  return getIK(pose, joint_pose);
+  return getIK(pose, joint_pose, check_validity);
 }
 
-bool MoveitStateAdapter::getIK(const Eigen::Isometry3d& pose, std::vector<double>& joint_pose) const
+bool MoveitStateAdapter::getIK(const Eigen::Isometry3d& pose, std::vector<double>& joint_pose, bool check_validity) const
 {
   bool rtn = false;
 
@@ -155,7 +155,7 @@ bool MoveitStateAdapter::getIK(const Eigen::Isometry3d& pose, std::vector<double
   if (robot_state_->setFromIK(joint_group_, tool_pose, tool_frame_))
   {
     robot_state_->copyJointGroupPositions(group_name_, joint_pose);
-    if (!isValid(joint_pose))
+    if (check_validity && !isValid(joint_pose))
     {
       CONSOLE_BRIDGE_logDebug("MoveitStateAdapter.getIK: Robot joint pose is invalid");
     }
@@ -172,7 +172,7 @@ bool MoveitStateAdapter::getIK(const Eigen::Isometry3d& pose, std::vector<double
   return rtn;
 }
 
-bool MoveitStateAdapter::getAllIK(const Eigen::Isometry3d& pose, std::vector<std::vector<double> >& joint_poses) const
+bool MoveitStateAdapter::getAllIK(const Eigen::Isometry3d& pose, std::vector<std::vector<double> >& joint_poses, bool check_validity) const
 {
   // The minimum difference between solutions should be greater than the search discretization
   // used by the IK solver.  This value is multiplied by 4 to remove any chance that a solution
@@ -184,7 +184,7 @@ bool MoveitStateAdapter::getAllIK(const Eigen::Isometry3d& pose, std::vector<std
   for (size_t sample_iter = 0; sample_iter < seed_states_.size(); ++sample_iter)
   {
     std::vector<double> joint_pose;
-    if (getIK(pose, joint_pose))
+    if (getIK(pose, joint_pose, check_validity))
     {
       if (joint_poses.empty())
       {
@@ -241,7 +241,7 @@ bool MoveitStateAdapter::getAllIK(const Eigen::Isometry3d& pose, std::vector<std
   }
 }
 
-bool MoveitStateAdapter::isInCollision(const std::vector<double>& joint_pose) const
+bool MoveitStateAdapter::isInCollision(const std::vector<double>& joint_pose, bool explain, std::ostream& ostream) const
 {
   bool in_collision = false;
   if (check_collisions_)
@@ -261,6 +261,16 @@ bool MoveitStateAdapter::isInCollision(const std::vector<double>& joint_pose) co
 
     // If the state is colliding return false
     in_collision = (*ls)->isStateColliding(robot_state_copy, group_name_, false);
+
+    if (in_collision && explain)
+    {
+      collision_detection::CollisionResult::ContactMap colliding_pairs;
+      (*ls)->getCollidingPairs(colliding_pairs, robot_state_copy, group_name_);
+      for (const auto& pair : colliding_pairs)
+      {
+        ostream << "Collision between: " << pair.first.first << " and " << pair.first.second << std::endl;
+      }
+    }
   }
 
   return in_collision;
@@ -299,7 +309,7 @@ bool MoveitStateAdapter::getFK(const std::vector<double>& joint_pose, Eigen::Iso
   return rtn;
 }
 
-bool MoveitStateAdapter::isValid(const std::vector<double>& joint_pose) const
+bool MoveitStateAdapter::isValid(const std::vector<double>& joint_pose, bool explain, std::ostream& ostream) const
 {
   // Logical check on input sizes
   if (joint_group_->getActiveJointModels().size() != joint_pose.size())
@@ -314,11 +324,15 @@ bool MoveitStateAdapter::isValid(const std::vector<double>& joint_pose) const
   if (!isInLimits(joint_pose))
   {
     CONSOLE_BRIDGE_logDebug("MoveitStateAdapter.isValid: Joint pose does not satisfy positional bounds");
+    if (explain)
+    {
+      ostream << "Joint pose does not satisfy positional bounds" << std::endl;
+    }
     return false;
   }
 
   // Is in collision (if collision is active)
-  if (isInCollision(joint_pose))
+  if (isInCollision(joint_pose, explain, ostream))
   {
     CONSOLE_BRIDGE_logDebug("MoveitStateAdapter.isValid: Joint pose is in collision");
     return false;
@@ -327,11 +341,13 @@ bool MoveitStateAdapter::isValid(const std::vector<double>& joint_pose) const
   return true;
 }
 
-bool MoveitStateAdapter::isValid(const Eigen::Isometry3d& pose) const
+bool MoveitStateAdapter::isValid(const Eigen::Isometry3d& pose, bool explain, std::ostream& ostream) const
 {
   // TODO: Could check robot extents first as a quick check
-  std::vector<double> dummy;
-  return getIK(pose, dummy);
+  std::vector<double> joint_pose;
+  if (!getIK(pose, joint_pose, false))
+    return false;
+  return isValid(joint_pose, explain, ostream);
 }
 
 int MoveitStateAdapter::getDOF() const
