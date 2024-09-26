@@ -164,8 +164,7 @@ bool PlanningGraph::removeTrajectory(const TrajectoryPt::ID& point)
 
 bool PlanningGraph::getFailingPointReason(std::ostream& ostream) const
 {
-  // TODOIÑIGO: Finish this function
-  if (failing_point_)
+    if (failing_point_)
   {
     std::vector<double> seed_state, joint_pose;
     final_computed_point.getNominalJointPose({}, *robot_model_, seed_state);
@@ -221,7 +220,15 @@ int PlanningGraph::calculateJointSolutions(const TrajectoryPtPtr* points, const 
       if (joint_poses.empty())
       {
         ROS_ERROR_STREAM(__FUNCTION__ << ": IK failed for input trajectory point with ID = " << points[i]->getID());
+
+      #pragma omp critical
+      {
+        if (i < success)
+        {
         success = i;
+}
+      }
+
         points[i]->getJointPoses(*robot_model_, joint_poses);
       }
 
