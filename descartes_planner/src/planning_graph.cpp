@@ -164,16 +164,10 @@ bool PlanningGraph::removeTrajectory(const TrajectoryPt::ID& point)
 
 bool PlanningGraph::getFailingPointReason(std::ostream& ostream) const
 {
-  ostream << "Failing point reason: ";
     if (failing_point_)
   {
-    ostream << "Failing point" <<std::endl;
     std::vector<double> seed_state, joint_pose;
     final_computed_point.getNominalJointPose({}, *robot_model_, seed_state);
-    for (size_t i = 0; i < seed_state.size(); ++i)
-    {
-      ostream << "Seed state " << i << ": " << seed_state[i] << std::endl;
-    }
     if (!failing_point_->getClosestJointPose(seed_state, *robot_model_, joint_pose, false))
     {
       ostream << "IK not returning any solution, point is out of reach";
