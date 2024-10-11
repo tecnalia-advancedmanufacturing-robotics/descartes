@@ -314,6 +314,9 @@ bool MoveitStateAdapter::isValid(const std::vector<double>& joint_pose, bool exp
   // Logical check on input sizes
   if (joint_group_->getActiveJointModels().size() != joint_pose.size())
   {
+    if (explain)
+    ostream << "Size of joint pose: " << joint_pose.size() << " doesn't match robot state variable size: "
+            << joint_group_->getActiveJointModels().size() << std::endl;
     CONSOLE_BRIDGE_logError("Size of joint pose: %lu doesn't match robot state variable size: %lu",
              static_cast<unsigned long>(joint_pose.size()),
              static_cast<unsigned long>(joint_group_->getActiveJointModels().size()));
@@ -337,6 +340,9 @@ bool MoveitStateAdapter::isValid(const std::vector<double>& joint_pose, bool exp
     CONSOLE_BRIDGE_logDebug("MoveitStateAdapter.isValid: Joint pose is in collision");
     return false;
   }
+
+  if (explain)
+    ostream << "Valid" << std::endl;
 
   return true;
 }
