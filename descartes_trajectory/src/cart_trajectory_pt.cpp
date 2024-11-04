@@ -200,13 +200,13 @@ CartTrajectoryPt::CartTrajectoryPt(const Frame &wobj_pt, const descartes_core::T
 }
 
 bool CartTrajectoryPt::getClosestCartPose(const std::vector<double> &, const RobotModel &,
-                                          Eigen::Isometry3d &) const
+Eigen::Isometry3d &) const
 {
   NOT_IMPLEMENTED_ERR(false);
 }
 
 bool CartTrajectoryPt::getNominalCartPose(const std::vector<double> &, const RobotModel &,
-                                          Eigen::Isometry3d &pose) const
+Eigen::Isometry3d &pose) const
 {
   /* Simply return wobj_pt expressed in world */
   pose = wobj_base_.frame * wobj_pt_.frame;
@@ -262,105 +262,37 @@ void CartTrajectoryPt::getCartesianPoses(const RobotModel &model, EigenSTL::vect
   else
   {
     ROS_DEBUG_STREAM_NAMED("Descartes", "Get cartesian poses, sampled: " << all_poses.size() << ", with " << poses.size()
-                                                                         << " valid(returned) poses");
+<< " valid(returned) poses");
   }
 }
-
-bool CartTrajectoryPt::getClosestJointPose(const std::vector<double> &seed_state, const RobotModel &model,
-                                           std::vector<double> &joint_pose) const
+bool CartTrajectoryPt::getClosestJointPose(const std::vector<double>& seed_state, const RobotModel& model,
+                                           std::vector<double>& joint_pose, bool check_validity) const
 {
-  Eigen::Isometry3d nominal_pose, candidate_pose;
+  bool ret = false;
+  joint_pose.clear();
+  float dist = INFINITY;
+  EigenSTL::vector_Isometry3d poses;
+  computeCartesianPoses(poses);
 
-  if (!model.getFK(seed_state, candidate_pose))
+  poses.reserve(poses.size());
+  for (const auto& pose : poses)
   {
-    ROS_ERROR_STREAM("FK failed for seed pose for closest joint pose");
-    return false;
-  }
-
-  // getting pose values
-  Eigen::Vector3d t = candidate_pose.translation();
-  Eigen::Vector3d rpy = candidate_pose.linear().eulerAngles(0, 1, 2);
-
-  std::vector<std::tuple<double, double, double> > vals = {
-    std::make_tuple(t(0), wobj_pt_.position_tolerance.x_lower, wobj_pt_.position_tolerance.x_upper),
-    std::make_tuple(t(1), wobj_pt_.position_tolerance.y_lower, wobj_pt_.position_tolerance.y_upper),
-    std::make_tuple(t(2), wobj_pt_.position_tolerance.z_lower, wobj_pt_.position_tolerance.z_upper),
-    std::make_tuple(rpy(0), wobj_pt_.orientation_tolerance.x_lower, wobj_pt_.orientation_tolerance.x_upper),
-    std::make_tuple(rpy(1), wobj_pt_.orientation_tolerance.y_lower, wobj_pt_.orientation_tolerance.y_upper),
-    std::make_tuple(rpy(2), wobj_pt_.orientation_tolerance.z_lower, wobj_pt_.orientation_tolerance.z_upper)
-  };
-
-  std::vector<double> closest_pose_vals = { t(0), t(1), t(2), rpy(0), rpy(1), rpy(2) };
-  bool solve_ik = false;
-  for (std::size_t i = 0; i < vals.size(); i++)
-  {
-    auto &lower = std::get<1>(vals[i]);
-    auto &upper = std::get<2>(vals[i]);
-    auto &v = std::get<0>(vals[i]);
-
-    if (std::abs(upper - lower) > EQUALITY_TOLERANCE)
+    std::vector<std::vector<double> > local_joint_poses;
+    if (model.getAllIK(pose, local_joint_poses, check_validity))  // TODO define this function;
     {
-      auto bounds = std::make_pair(lower, upper);
-      if (std::minmax({ lower, v, upper }) != bounds)
+      for (auto local_joint_pose : local_joint_poses)
       {
-        solve_ik = true;
-        closest_pose_vals[i] = v < lower ? lower : upper;
-        ROS_DEBUG("Cartesian nominal [%lu] exceeded bounds: [val: %f, lower: %f, upper: %f]", i, v, lower, upper);
-      }
-    }
-    else
-    {
-      if (std::abs(v - lower) > EQUALITY_TOLERANCE)
-      {
-        solve_ik = true;
-        ROS_DEBUG("Cartesian nominals [%lu] differ: [val: %f, lower: %f, upper: %f]", i, v, lower, upper);
-        closest_pose_vals[i] = lower;
-      }
-    }
-  }
-
-  if (solve_ik)
-  {
-    Eigen::Isometry3d closest_pose = descartes_core::utils::toFrame(
-        closest_pose_vals[0], closest_pose_vals[1], closest_pose_vals[2], closest_pose_vals[3], closest_pose_vals[4],
-        closest_pose_vals[5], descartes_core::utils::EulerConventions::XYZ);
-    if (!model.getIK(closest_pose, seed_state, joint_pose))
-    {
-      ROS_WARN_STREAM("Ik failed on closest pose");
-
-      std::vector<std::vector<double> > joint_poses;
-      getJointPoses(model, joint_poses);
-      if (joint_poses.size() > 0)
-      {
-        ROS_WARN_STREAM("Closest cartesian pose not found, returning closest to seed joint pose");
-
-        double sd = std::numeric_limits<double>::max();
-        double d;
-        for (auto j : joint_poses)
+        float local_dist = distance(seed_state, local_joint_pose);
+        if (local_dist < dist)
         {
-          d = distance(seed_state, j);
-          if (sd > d)
-          {
-            sd = d;
-            joint_pose = j;
-          }
+          joint_pose = std::move(local_joint_pose);
+          dist = local_dist;
+          ret = true;
         }
       }
-      else
-      {
-        ROS_ERROR_STREAM("getClosestJointPose failed, no valid joint poses for this point");
-        return false;
-      }
-
-      return true;
     }
   }
-  else
-  {
-    joint_pose.assign(seed_state.begin(), seed_state.end());
-  }
-
-  return true;
+  return ret;
 }
 
 bool CartTrajectoryPt::getNominalJointPose(const std::vector<double> &seed_state, const RobotModel &model,
