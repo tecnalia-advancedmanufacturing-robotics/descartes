@@ -31,6 +31,7 @@ set(AMENT_DEPENDENCIES
   moveit_msgs
   rclcpp
   visualization_msgs
+  moveit_core
 )
 
 find_package(Eigen3 REQUIRED)

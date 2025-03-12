@@ -30,6 +30,7 @@ if(NOT EIGEN3_INCLUDE_DIRS)
 endif()
 
 find_package(rclcpp REQUIRED)
+find_package(moveit_core REQUIRED)
 find_package(Boost REQUIRED)
 # find_package(EIGEN3 REQUIRED)
 # foreach(dep_pkg ${THIS_PACKAGE_INCLUDE_DEPENDS})
