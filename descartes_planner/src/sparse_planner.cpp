@@ -148,12 +148,12 @@ void SparsePlanner::setSampling(double sampling)
   sampling_ = sampling;
 }
 
-bool SparsePlanner::planPath(const std::vector<TrajectoryPtPtr>& traj)
+float SparsePlanner::planPath(const std::vector<TrajectoryPtPtr>& traj)
 {
   if (error_code_ == descartes_core::PlannerError::UNINITIALIZED)
   {
     RCLCPP_ERROR_STREAM(rclcpp::get_logger("descartes_planner"),"Planner has not been initialized");
-    return false;
+    return 0.0;
   }
 
   rclcpp::Clock clock = rclcpp::Clock{};
@@ -176,10 +176,10 @@ bool SparsePlanner::planPath(const std::vector<TrajectoryPtPtr>& traj)
   else
   {
     error_code_ = descartes_core::PlannerError::IK_NOT_AVAILABLE;
-    return false;
+    return 0.0;
   }
 
-  return true;
+  return 1.0;
 }
 
 bool SparsePlanner::addAfter(const TrajectoryPt::ID& ref_id, TrajectoryPtPtr cp)

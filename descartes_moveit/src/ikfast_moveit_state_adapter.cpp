@@ -133,7 +133,8 @@ descartes_moveit::IkFastMoveitStateAdapter::variantsOfIK(const std::vector<doubl
 }
 
 bool descartes_moveit::IkFastMoveitStateAdapter::getAllIK(const Eigen::Isometry3d& pose,
-                                                          std::vector<std::vector<double>>& joint_poses) const
+                                                          std::vector<std::vector<double>>& joint_poses,
+                                                          bool check_validity) const
 {
   joint_poses.clear();
   const auto& solver = joint_group_->getSolverInstance();
@@ -156,8 +157,9 @@ bool descartes_moveit::IkFastMoveitStateAdapter::getAllIK(const Eigen::Isometry3
     return false;
   }
 
+
   for (auto& sol : joint_results)
-    if (isValid(sol))
+    if (!check_validity || isValid(sol))
       for (auto& variant : variantsOfIK(sol))
         joint_poses.push_back(variant);
 
@@ -170,11 +172,12 @@ bool descartes_moveit::IkFastMoveitStateAdapter::getAllIK(const Eigen::Isometry3
 
 bool descartes_moveit::IkFastMoveitStateAdapter::getIK(const Eigen::Isometry3d& pose,
                                                        const std::vector<double>& seed_state,
-                                                       std::vector<double>& joint_pose) const
+                                                       std::vector<double>& joint_pose,
+                                                       bool check_validity) const
 {
   // Descartes Robot Model interface calls for 'closest' point to seed position
   std::vector<std::vector<double>> joint_poses;
-  if (!getAllIK(pose, joint_poses))
+  if (!getAllIK(pose, joint_poses, check_validity))
     return false;
   // Find closest joint pose; getAllIK() does isValid checks already
   joint_pose = joint_poses[closestJointPose(seed_state, joint_poses)];

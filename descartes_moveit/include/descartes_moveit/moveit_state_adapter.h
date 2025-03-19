@@ -49,15 +49,15 @@ public:
                           const std::string &world_frame, const std::string &tcp_frame);
 
   virtual bool getIK(const Eigen::Isometry3d &pose, const std::vector<double> &seed_state,
-                     std::vector<double> &joint_pose) const;
+                     std::vector<double> &joint_pose, bool check_validity = true) const;
 
-  virtual bool getAllIK(const Eigen::Isometry3d &pose, std::vector<std::vector<double> > &joint_poses) const;
+  virtual bool getAllIK(const Eigen::Isometry3d &pose, std::vector<std::vector<double> > &joint_poses, bool check_validity = true) const;
 
   virtual bool getFK(const std::vector<double> &joint_pose, Eigen::Isometry3d &pose) const;
 
-  virtual bool isValid(const std::vector<double> &joint_pose) const;
+  virtual bool isValid(const std::vector<double> &joint_pose, bool explain = false, std::ostream& ostream = std::cerr) const;
 
-  virtual bool isValid(const Eigen::Isometry3d &pose) const;
+  virtual bool isValid(const Eigen::Isometry3d &pose, bool explain=false, std::ostream& ostream = std::cerr) const;
 
   virtual int getDOF() const;
 
@@ -105,14 +105,14 @@ protected:
    * @param joint_pose Solution (if function successful).
    * @return
    */
-  bool getIK(const Eigen::Isometry3d &pose, std::vector<double> &joint_pose) const;
+  bool getIK(const Eigen::Isometry3d &pose, std::vector<double> &joint_pose, bool check_validity = true) const;
 
   /**
    * TODO: Checks for collisions at this joint pose. The setCollisionCheck(true) must have been
    * called previously in order to enable collision checks, otherwise it will return false.
    * @param joint_pose the joint values at which check for collisions will be made
    */
-  bool isInCollision(const std::vector<double>& joint_pose) const;
+  bool isInCollision(const std::vector<double>& joint_pose, bool explain, std::ostream& ostream) const;
 
   /**
    * @brief Checks to see if the given joint_pose state is inside the bounds for the initialized

@@ -96,7 +96,7 @@ void JointTrajectoryPt::getCartesianPoses(const RobotModel &, EigenSTL::vector_I
 }
 
 bool JointTrajectoryPt::getClosestJointPose(const std::vector<double> &seed_state, const RobotModel &model,
-                                            std::vector<double> &joint_pose) const
+                                            std::vector<double> &joint_pose, bool check_validity) const
 {
   if (nominal_.empty())
   {
