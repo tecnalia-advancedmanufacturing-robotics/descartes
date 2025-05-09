@@ -25,7 +25,7 @@
 #ifndef CART_TRAJECTORY_PT_H_
 #define CART_TRAJECTORY_PT_H_
 
-// #include <moveit/kinematic_constraints/kinematic_constraint.h>
+// #include <moveit/kinematic_constraints/kinematic_constraint.hpp>
 #include <descartes_core/trajectory_pt.h>
 #include "rclcpp/logging.hpp"
 
@@ -67,7 +67,7 @@ struct ToleranceBase
     #param tol Total tolerance zone (assumed symetric about nominal)
     */
   template <typename T>
-  static T createSymmetric(const double &x, const double &y, const double &z, const double &tol)
+  static T createSymmetric(const double& x, const double& y, const double& z, const double& tol)
   {
     return (createSymmetric<T>(x, y, z, tol, tol, tol));
   }
@@ -77,7 +77,7 @@ struct ToleranceBase
     @param x, y, z
     */
   template <typename T>
-  static T zeroTolerance(const double &x, const double &y, const double &z)
+  static T zeroTolerance(const double& x, const double& y, const double& z)
   {
     return (createSymmetric<T>(x, y, z, 0.0, 0.0, 0.0));
   }
@@ -103,9 +103,12 @@ struct ToleranceBase
     , z_lower(z_lower_lim)
   {
     RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ToleranceBase"), "Creating fully defined Tolerance(base type)");
-    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ToleranceBase"), "Initializing x tolerance (lower/upper)" << x_lower << "/" << x_upper);
-    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ToleranceBase"), "Initializing y tolerance (lower/upper)" << y_lower << "/" << y_upper);
-    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ToleranceBase"), "Initializing z tolerance (lower/upper)" << z_lower << "/" << z_upper);
+    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ToleranceBase"),
+                        "Initializing x tolerance (lower/upper)" << x_lower << "/" << x_upper);
+    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ToleranceBase"),
+                        "Initializing y tolerance (lower/upper)" << y_lower << "/" << y_upper);
+    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ToleranceBase"),
+                        "Initializing z tolerance (lower/upper)" << z_lower << "/" << z_upper);
   }
 
   void clear()
@@ -146,7 +149,7 @@ struct OrientationTolerance : public ToleranceBase
                        double z_lower_lim, double z_upper_lim)
     : ToleranceBase(x_lower_lim, x_upper_lim, y_lower_lim, y_upper_lim, z_lower_lim, z_upper_lim)
   {
-    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("OrientationTolerance"),"Created fully defined Orientation Tolerance");
+    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("OrientationTolerance"), "Created fully defined Orientation Tolerance");
   }
 };
 
@@ -156,7 +159,7 @@ struct OrientationTolerance : public ToleranceBase
 struct TolerancedFrame : public descartes_core::Frame
 {
   TolerancedFrame(){};
-  TolerancedFrame(const Eigen::Isometry3d &a) : descartes_core::Frame(a)
+  TolerancedFrame(const Eigen::Isometry3d& a) : descartes_core::Frame(a)
   {
     Eigen::Vector3d t = a.translation();
     Eigen::Matrix3d m = a.rotation();
@@ -164,7 +167,7 @@ struct TolerancedFrame : public descartes_core::Frame
     position_tolerance = ToleranceBase::createSymmetric<PositionTolerance>(t(0), t(1), t(2), 0);
     orientation_tolerance = ToleranceBase::createSymmetric<OrientationTolerance>(rxyz(0), rxyz(1), rxyz(2), 0);
   };
-  TolerancedFrame(const descartes_core::Frame &a) : descartes_core::Frame(a)
+  TolerancedFrame(const descartes_core::Frame& a) : descartes_core::Frame(a)
   {
     Eigen::Vector3d t = a.frame.translation();
     Eigen::Matrix3d m = a.frame.linear();
@@ -173,7 +176,7 @@ struct TolerancedFrame : public descartes_core::Frame
     orientation_tolerance = ToleranceBase::createSymmetric<OrientationTolerance>(rxyz(0), rxyz(1), rxyz(2), 0);
   };
 
-  TolerancedFrame(const Eigen::Isometry3d &a, const PositionTolerance &pos_tol, const OrientationTolerance &orient_tol)
+  TolerancedFrame(const Eigen::Isometry3d& a, const PositionTolerance& pos_tol, const OrientationTolerance& orient_tol)
     : Frame(a), position_tolerance(pos_tol), orientation_tolerance(orient_tol)
   {
   }
@@ -213,7 +216,7 @@ public:
   /**
     @brief Default cartesian trajectory point constructor.  All frames initialized to Identity
     */
-  CartTrajectoryPt(const descartes_core::TimingConstraint &timing = descartes_core::TimingConstraint());
+  CartTrajectoryPt(const descartes_core::TimingConstraint& timing = descartes_core::TimingConstraint());
 
   /**
     @brief Full constructor of cartesian trajectory point
@@ -224,10 +227,10 @@ public:
     @param pos_increment Position increment used for sampling
     @param pos_increment Orientation increment used for sampling
     */
-  CartTrajectoryPt(const descartes_core::Frame &wobj_base, const TolerancedFrame &wobj_pt,
-                   const descartes_core::Frame &tool_base, const TolerancedFrame &tool_pt, double pos_increment,
+  CartTrajectoryPt(const descartes_core::Frame& wobj_base, const TolerancedFrame& wobj_pt,
+                   const descartes_core::Frame& tool_base, const TolerancedFrame& tool_pt, double pos_increment,
                    double orient_increment,
-                   const descartes_core::TimingConstraint &timing = descartes_core::TimingConstraint());
+                   const descartes_core::TimingConstraint& timing = descartes_core::TimingConstraint());
 
   /**
     @brief Partial constructor of cartesian trajectory point (all frames not specified by parameters
@@ -237,8 +240,8 @@ public:
     @param pos_increment Position increment used for sampling
     @param pos_increment Orientation increment used for sampling
     */
-  CartTrajectoryPt(const TolerancedFrame &wobj_pt, double pos_increment, double orient_increment,
-                   const descartes_core::TimingConstraint &timing = descartes_core::TimingConstraint());
+  CartTrajectoryPt(const TolerancedFrame& wobj_pt, double pos_increment, double orient_increment,
+                   const descartes_core::TimingConstraint& timing = descartes_core::TimingConstraint());
 
   /**
     @brief Partial constructor of cartesian trajectory point (all frames not specified by parameters
@@ -246,25 +249,25 @@ public:
     point relative to the robot base.
     @param wobj_pt Underconstrained transform from object base to goal point on object.
     */
-  CartTrajectoryPt(const descartes_core::Frame &wobj_pt,
-                   const descartes_core::TimingConstraint &timing = descartes_core::TimingConstraint());
+  CartTrajectoryPt(const descartes_core::Frame& wobj_pt,
+                   const descartes_core::TimingConstraint& timing = descartes_core::TimingConstraint());
 
   virtual ~CartTrajectoryPt(){};
 
   /**@name Getters for Cartesian pose(s)
-     * @{
-     */
+   * @{
+   */
 
   // TODO complete
-  virtual bool getClosestCartPose(const std::vector<double> &seed_state, const descartes_core::RobotModel &model,
-                                  Eigen::Isometry3d &pose) const;
+  virtual bool getClosestCartPose(const std::vector<double>& seed_state, const descartes_core::RobotModel& model,
+                                  Eigen::Isometry3d& pose) const;
 
   // TODO complete
-  virtual bool getNominalCartPose(const std::vector<double> &seed_state, const descartes_core::RobotModel &model,
-                                  Eigen::Isometry3d &pose) const;
+  virtual bool getNominalCartPose(const std::vector<double>& seed_state, const descartes_core::RobotModel& model,
+                                  Eigen::Isometry3d& pose) const;
 
   // TODO complete
-  virtual void getCartesianPoses(const descartes_core::RobotModel &model, EigenSTL::vector_Isometry3d &poses) const;
+  virtual void getCartesianPoses(const descartes_core::RobotModel& model, EigenSTL::vector_Isometry3d& poses) const;
   /** @} (end section) */
 
   /**@name Getters for joint pose(s)
@@ -272,45 +275,45 @@ public:
    */
 
   // TODO complete
-  virtual bool getClosestJointPose(const std::vector<double> &seed_state, const descartes_core::RobotModel &model,
-                                   std::vector<double> &joint_pose, bool check_validity=true) const;
+  virtual bool getClosestJointPose(const std::vector<double>& seed_state, const descartes_core::RobotModel& model,
+                                   std::vector<double>& joint_pose, bool check_validity = true) const;
   // TODO complete
-  virtual bool getNominalJointPose(const std::vector<double> &seed_state, const descartes_core::RobotModel &model,
-                                   std::vector<double> &joint_pose) const;
+  virtual bool getNominalJointPose(const std::vector<double>& seed_state, const descartes_core::RobotModel& model,
+                                   std::vector<double>& joint_pose) const;
 
   // TODO complete
-  virtual void getJointPoses(const descartes_core::RobotModel &model,
-                             std::vector<std::vector<double> > &joint_poses) const;
+  virtual void getJointPoses(const descartes_core::RobotModel& model,
+                             std::vector<std::vector<double> >& joint_poses) const;
   /** @} (end section) */
 
   // TODO complete
-  virtual bool isValid(const descartes_core::RobotModel &model) const;
+  virtual bool isValid(const descartes_core::RobotModel& model) const;
   /**@brief Set discretization. Cartesian points can have position and angular discretization.
    * @param discretization Vector of discretization values. Must be length 2 or 6 (position/orientation or separate
    * xyzrpy).
    * @return True if vector is valid length/values. TODO what are valid values?
    */
-  virtual bool setDiscretization(const std::vector<double> &discretization);
+  virtual bool setDiscretization(const std::vector<double>& discretization);
 
   virtual descartes_core::TrajectoryPtPtr copy() const
   {
     return descartes_core::TrajectoryPtPtr(new CartTrajectoryPt(*this));
   }
 
-  inline void setTool(const descartes_core::Frame &base, const TolerancedFrame &pt)
+  inline void setTool(const descartes_core::Frame& base, const TolerancedFrame& pt)
   {
     tool_base_ = base;
     tool_pt_ = pt;
   }
 
-  inline void setWobj(const descartes_core::Frame &base, const TolerancedFrame &pt)
+  inline void setWobj(const descartes_core::Frame& base, const TolerancedFrame& pt)
   {
     wobj_base_ = base;
     wobj_pt_ = pt;
   }
 
 protected:
-  bool computeCartesianPoses(EigenSTL::vector_Isometry3d &poses) const;
+  bool computeCartesianPoses(EigenSTL::vector_Isometry3d& poses) const;
 
 protected:
   descartes_core::Frame tool_base_; /**<@brief Fixed transform from wrist/tool_plate to tool base. */

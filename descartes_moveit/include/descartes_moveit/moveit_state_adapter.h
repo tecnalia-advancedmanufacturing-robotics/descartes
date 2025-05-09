@@ -22,11 +22,10 @@
 #include "descartes_core/robot_model.h"
 #include "descartes_trajectory/cart_trajectory_pt.h"
 
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/robot_model/robot_model.hpp>
+#include <moveit/robot_model_loader/robot_model_loader.hpp>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.hpp>
 #include <string>
-
 
 namespace descartes_moveit
 {
@@ -42,27 +41,28 @@ public:
   {
   }
 
-  virtual bool initialize(const rclcpp::Node::SharedPtr& node, const std::string &robot_description, const std::string &group_name,
-                          const std::string &world_frame, const std::string &tcp_frame);
+  virtual bool initialize(const rclcpp::Node::SharedPtr& node, const std::string& robot_description,
+                          const std::string& group_name, const std::string& world_frame, const std::string& tcp_frame);
 
-  virtual bool initialize(planning_scene_monitor::PlanningSceneMonitorPtr& psm, const std::string &group_name,
-                          const std::string &world_frame, const std::string &tcp_frame);
+  virtual bool initialize(planning_scene_monitor::PlanningSceneMonitorPtr& psm, const std::string& group_name,
+                          const std::string& world_frame, const std::string& tcp_frame);
 
-  virtual bool getIK(const Eigen::Isometry3d &pose, const std::vector<double> &seed_state,
-                     std::vector<double> &joint_pose, bool check_validity = true) const;
+  virtual bool getIK(const Eigen::Isometry3d& pose, const std::vector<double>& seed_state,
+                     std::vector<double>& joint_pose, bool check_validity = true) const;
 
-  virtual bool getAllIK(const Eigen::Isometry3d &pose, std::vector<std::vector<double> > &joint_poses, bool check_validity = true) const;
+  virtual bool getAllIK(const Eigen::Isometry3d& pose, std::vector<std::vector<double> >& joint_poses,
+                        bool check_validity = true) const;
 
-  virtual bool getFK(const std::vector<double> &joint_pose, Eigen::Isometry3d &pose) const;
+  virtual bool getFK(const std::vector<double>& joint_pose, Eigen::Isometry3d& pose) const;
 
-  virtual bool isValid(const std::vector<double> &joint_pose, bool explain = false, std::ostream& ostream = std::cerr) const;
+  virtual bool isValid(const std::vector<double>& joint_pose, bool explain = false,
+                       std::ostream& ostream = std::cerr) const;
 
-  virtual bool isValid(const Eigen::Isometry3d &pose, bool explain=false, std::ostream& ostream = std::cerr) const;
+  virtual bool isValid(const Eigen::Isometry3d& pose, bool explain = false, std::ostream& ostream = std::cerr) const;
 
   virtual int getDOF() const;
 
-  virtual bool isValidMove(const double* from_joint_pose, const double* to_joint_pose,
-                           double dt) const;
+  virtual bool isValidMove(const double* from_joint_pose, const double* to_joint_pose, double dt) const;
 
   virtual std::vector<double> getJointVelocityLimits() const override;
   /**
@@ -70,7 +70,7 @@ public:
    * @param seeds Vector of vector of doubles representing joint positions.
    *              Be sure that it's sized correctly for the DOF.
    */
-  void setSeedStates(const std::vector<std::vector<double> > &seeds)
+  void setSeedStates(const std::vector<std::vector<double> >& seeds)
   {
     seed_states_ = seeds;
   }
@@ -78,7 +78,7 @@ public:
   /**
    * @brief Retrieves the initial seed states used by iterative inverse kinematic solvers
    */
-  const std::vector<std::vector<double> > &getSeedStates() const
+  const std::vector<std::vector<double> >& getSeedStates() const
   {
     return seed_states_;
   }
@@ -96,7 +96,7 @@ public:
    *        value of joints that are not part of the active move group. Should be called after
    *        'initialize()'.
    */
-  void setState(const moveit::core::RobotState &state);
+  void setState(const moveit::core::RobotState& state);
 
 protected:
   /**
@@ -105,7 +105,7 @@ protected:
    * @param joint_pose Solution (if function successful).
    * @return
    */
-  bool getIK(const Eigen::Isometry3d &pose, std::vector<double> &joint_pose, bool check_validity = true) const;
+  bool getIK(const Eigen::Isometry3d& pose, std::vector<double>& joint_pose, bool check_validity = true) const;
 
   /**
    * TODO: Checks for collisions at this joint pose. The setCollisionCheck(true) must have been
@@ -135,7 +135,7 @@ protected:
 
   mutable moveit::core::RobotStatePtr robot_state_;
 
-  const moveit::core::JointModelGroup *joint_group_;
+  const moveit::core::JointModelGroup* joint_group_;
 
   /**
    * @brief Vector of starting configurations for the numerical solver
@@ -168,6 +168,6 @@ protected:
   mutable planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 };
 
-}  // descartes_moveit
+}  // namespace descartes_moveit
 
 #endif /* MOVEIT_STATE_ADAPTER_H_ */

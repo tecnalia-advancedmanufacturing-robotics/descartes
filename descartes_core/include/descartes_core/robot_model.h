@@ -20,9 +20,8 @@
 #define ROBOT_KINEMATICS_H_
 
 // TODO: The include below picks up Eigen::Isometry3d, but there is probably a better way
-#include <moveit/kinematic_constraints/kinematic_constraint.h>
+#include <moveit/kinematic_constraints/kinematic_constraint.hpp>
 #include "descartes_core/utils.h"
-
 
 namespace descartes_core
 {
@@ -51,8 +50,8 @@ public:
    * @param joint_pose Solution (if function successful).
    * @return True if successful
    */
-  virtual bool getIK(const Eigen::Isometry3d &pose, const std::vector<double> &seed_state,
-                     std::vector<double> &joint_pose, bool check_validity = true) const = 0;
+  virtual bool getIK(const Eigen::Isometry3d& pose, const std::vector<double>& seed_state,
+                     std::vector<double>& joint_pose, bool check_validity = true) const = 0;
 
   /**
    * @brief Returns "all" the joint poses("distributed" in joint space) for a desired affine pose.
@@ -62,7 +61,8 @@ public:
    * @param joint_poses Solution (if function successful).
    * @return True if successful
    */
-  virtual bool getAllIK(const Eigen::Isometry3d &pose, std::vector<std::vector<double> > &joint_poses, bool check_validity = true) const = 0;
+  virtual bool getAllIK(const Eigen::Isometry3d& pose, std::vector<std::vector<double> >& joint_poses,
+                        bool check_validity = true) const = 0;
 
   /**
    * @brief Returns the affine pose
@@ -70,7 +70,7 @@ public:
    * @param pose Affine pose of TOOL in WOBJ frame
    * @return True if successful
    */
-  virtual bool getFK(const std::vector<double> &joint_pose, Eigen::Isometry3d &pose) const = 0;
+  virtual bool getFK(const std::vector<double>& joint_pose, Eigen::Isometry3d& pose) const = 0;
 
   /**
    * @brief Returns number of DOFs
@@ -83,7 +83,7 @@ public:
    * @param joint_pose Pose to check
    * @return True if valid
    */
-  virtual bool isValid(const std::vector<double> &joint_pose, bool explain = false,
+  virtual bool isValid(const std::vector<double>& joint_pose, bool explain = false,
                        std::ostream& ostream = std::cerr) const = 0;
 
   /**
@@ -91,7 +91,7 @@ public:
    * @param pose Affine pose of TOOL in WOBJ frame
    * @return True if valid
    */
-  virtual bool isValid(const Eigen::Isometry3d &pose, bool explain = false,
+  virtual bool isValid(const Eigen::Isometry3d& pose, bool explain = false,
                        std::ostream& ostream = std::cerr) const = 0;
 
   /**
@@ -109,8 +109,9 @@ public:
    * @param tcp_frame tool link attached to the robot. When it's not in 'group_name' then it should have
    * a fixed location relative to the last link in 'group_name'.
    */
-  virtual bool initialize(const rclcpp::Node::SharedPtr& node, const std::string &robot_description, const std::string &group_name,
-                          const std::string &world_frame, const std::string &tcp_frame) = 0;
+  virtual bool initialize(const rclcpp::Node::SharedPtr& node, const std::string& robot_description,
+                          const std::string& group_name, const std::string& world_frame,
+                          const std::string& tcp_frame) = 0;
 
   /**
    * @brief Enables collision checks
@@ -130,7 +131,6 @@ public:
     return check_collisions_;
   }
 
-
   /**
    * @brief Performs necessary checks to see if the robot is capable of moving from the initial joint pose
    *        to the final pose in dt seconds
@@ -139,7 +139,7 @@ public:
    * @param  dt              [description]
    * @return                 [description]
    */
-  virtual bool isValidMove(const std::vector<double> &from_joint_pose, const std::vector<double> &to_joint_pose,
+  virtual bool isValidMove(const std::vector<double>& from_joint_pose, const std::vector<double>& to_joint_pose,
                            double dt) const
   {
     return isValidMove(from_joint_pose.data(), to_joint_pose.data(), dt);
@@ -153,9 +153,8 @@ protected:
   }
 
   bool check_collisions_;
-
 };
 
-}  // descartes_core
+}  // namespace descartes_core
 
 #endif /* ROBOT_KINEMATICS_H_ */

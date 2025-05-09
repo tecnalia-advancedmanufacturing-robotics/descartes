@@ -35,7 +35,7 @@
 #ifndef SEED_SEARCH_H
 #define SEED_SEARCH_H
 
-#include <moveit/robot_state/robot_state.h>
+#include <moveit/robot_state/robot_state.hpp>
 
 namespace descartes_moveit
 {
