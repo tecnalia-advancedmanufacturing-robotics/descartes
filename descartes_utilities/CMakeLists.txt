@@ -10,6 +10,7 @@ find_package(ament_cmake REQUIRED)
 
 set(AMENT_DEPENDENCIES
   descartes_core
+  moveit_core
   descartes_trajectory
   trajectory_msgs
   eigen_stl_containers
