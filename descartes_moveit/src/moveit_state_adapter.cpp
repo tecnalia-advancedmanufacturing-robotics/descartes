@@ -19,6 +19,7 @@
 #include <console_bridge/console.h>
 
 #include "moveit/robot_state/robot_state.h"
+#include "moveit/robot_state/conversions.h"
 #include "descartes_moveit/utils.h"
 #include "descartes_moveit/moveit_state_adapter.h"
 #include "descartes_core/pretty_print.hpp"
@@ -74,12 +75,18 @@ bool MoveitStateAdapter::initialize(const rclcpp::Node::SharedPtr& node, const s
 {
   // Initialize MoveIt state objects
   planning_scene_monitor::PlanningSceneMonitorPtr psm(new planning_scene_monitor::PlanningSceneMonitor(node, robot_description));
-  return initialize(psm, group_name, world_frame, tcp_frame);
+
+  return initialize(node, psm, group_name, world_frame, tcp_frame);
 }
 
-bool MoveitStateAdapter::initialize(planning_scene_monitor::PlanningSceneMonitorPtr& psm, const std::string &group_name,
+bool MoveitStateAdapter::initialize(const rclcpp::Node::SharedPtr &node, planning_scene_monitor::PlanningSceneMonitorPtr &psm, const std::string &group_name,
                                     const std::string &world_frame, const std::string &tcp_frame)
 {
+
+  // Create publisher for collision states
+  collision_state_publisher_ = node->create_publisher<moveit_msgs::msg::DisplayRobotState>(
+      "collision_robot_state", 10);
+
   planning_scene_monitor_ = psm;
   planning_scene_monitor_->startSceneMonitor();
 
@@ -270,6 +277,12 @@ bool MoveitStateAdapter::isInCollision(const std::vector<double>& joint_pose, bo
       {
         ostream << "Collision between: " << pair.first.first << " and " << pair.first.second << std::endl;
       }
+
+      // Publish the colliding robot state
+      moveit_msgs::msg::DisplayRobotState display_state_msg;
+      moveit::core::robotStateToRobotStateMsg(robot_state_copy, display_state_msg.state);
+      collision_state_publisher_->publish(display_state_msg);
+      CONSOLE_BRIDGE_logDebug("Published colliding robot state");
     }
   }
 

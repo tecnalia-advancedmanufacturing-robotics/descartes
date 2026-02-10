@@ -25,6 +25,8 @@
 #include <moveit/robot_model/robot_model.hpp>
 #include <moveit/robot_model_loader/robot_model_loader.hpp>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.hpp>
+#include <moveit_msgs/msg/display_robot_state.hpp>
+#include <rclcpp/rclcpp.hpp>
 #include <string>
 
 namespace descartes_moveit
@@ -44,8 +46,8 @@ public:
   virtual bool initialize(const rclcpp::Node::SharedPtr& node, const std::string& robot_description,
                           const std::string& group_name, const std::string& world_frame, const std::string& tcp_frame);
 
-  virtual bool initialize(planning_scene_monitor::PlanningSceneMonitorPtr& psm, const std::string& group_name,
-                          const std::string& world_frame, const std::string& tcp_frame);
+  virtual bool initialize(const rclcpp::Node::SharedPtr &node, planning_scene_monitor::PlanningSceneMonitorPtr &psm, const std::string &group_name,
+                          const std::string &world_frame, const std::string &tcp_frame);
 
   virtual bool getIK(const Eigen::Isometry3d& pose, const std::vector<double>& seed_state,
                      std::vector<double>& joint_pose, bool check_validity = true) const;
@@ -166,6 +168,11 @@ protected:
    * @brief Planning scene monitor (used to update internal planning scene)
    */
   mutable planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+
+  /**
+   * @brief Publisher for colliding robot states
+   */
+  rclcpp::Publisher<moveit_msgs::msg::DisplayRobotState>::SharedPtr collision_state_publisher_;
 };
 
 }  // namespace descartes_moveit
