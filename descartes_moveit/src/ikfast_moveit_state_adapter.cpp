@@ -64,12 +64,12 @@ bool descartes_moveit::IkFastMoveitStateAdapter::initialize(const rclcpp::Node::
   return computeIKFastTransforms();
 }
 
-bool descartes_moveit::IkFastMoveitStateAdapter::initialize(planning_scene_monitor::PlanningSceneMonitorPtr& psm,
-                                                            const std::string& group_name,
-                                                            const std::string& world_frame,
-                                                            const std::string& tcp_frame)
+bool descartes_moveit::IkFastMoveitStateAdapter::initialize(const rclcpp::Node::SharedPtr &node, planning_scene_monitor::PlanningSceneMonitorPtr &psm,
+                                                            const std::string &group_name,
+                                                            const std::string &world_frame,
+                                                            const std::string &tcp_frame)
 {
-  if (!MoveitStateAdapter::initialize(psm, group_name, world_frame, tcp_frame))
+  if (!MoveitStateAdapter::initialize(node, psm, group_name, world_frame, tcp_frame))
   {
     return false;
   }
